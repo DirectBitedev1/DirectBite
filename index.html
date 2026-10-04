@@ -3,44 +3,50 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DirectBite | 0% Commission Food Exchange</title>
+  <title>DirectBite | Automated 0% Commission Food & Live Logistics Exchange</title>
   <!-- Load Tailwind CSS Framework for Styling -->
   <script src="https://jsdelivr.net"></script>
 </head>
-<body class="bg-slate-100 font-sans min-h-screen p-4 md:p-8">
+<body class="bg-slate-100 font-sans min-h-screen p-4 md:p-8 transition-colors duration-500" id="bodyCtx">
 
   <div class="max-w-4xl mx-auto space-y-6">
-    <!-- Header -->
-    <header class="bg-slate-900 text-white p-6 rounded-2xl shadow-md">
-      <h1 class="text-2xl font-bold">DirectBite | 0% Commission Food Exchange</h1>
-      <p class="text-slate-400 text-sm mt-1">Real-time dynamic billing compared against market aggregators.</p>
+    <!-- Header Banner -->
+    <header class="bg-slate-900 text-white p-6 rounded-2xl shadow-md flex flex-wrap justify-between items-center gap-4">
+      <div>
+        <h1 class="text-2xl font-bold">DirectBite | Automated 0% Food & Logistics Exchange</h1>
+        <p class="text-slate-400 text-sm mt-1">Autonomous marketplace engine demonstrating real-time aggregator surge mechanics.</p>
+      </div>
+      <!-- Surge Indicator Status Badge -->
+      <div id="globalSurgeBadge" class="px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 bg-slate-800 text-slate-300 border border-slate-700">
+        ⌛ Calibrating Market Demand...
+      </div>
     </header>
 
-    <!-- Controls Row -->
+    <!-- Automated Status Stream Controls Panel -->
     <section class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-wrap gap-3 items-center justify-between">
       <div class="text-xs text-slate-600 font-medium">
-        Status: <span id="currentCoordsText" class="text-slate-800 font-bold">Awaiting telemetry calibration...</span>
+        Telemetry Link: <span id="currentCoordsText" class="text-slate-800 font-bold">Booting background scheduler...</span>
       </div>
-      <div class="flex gap-2">
-        <button id="refreshGpsBtn" class="bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-semibold px-3 py-2 rounded-lg transition">📍 Refresh GPS</button>
-        <button id="simulateMoveBtn" class="bg-amber-100 hover:bg-amber-200 text-amber-800 text-xs font-semibold px-3 py-2 rounded-lg transition">🎲 Simulate Move</button>
+      <div class="flex items-center gap-2">
+        <span class="inline-flex h-2 w-2 rounded-full bg-emerald-500 animate-ping"></span>
+        <span class="text-[11px] uppercase tracking-wider font-bold text-slate-400">Autonomous Demo Mode</span>
       </div>
     </section>
 
     <!-- Restaurant Dashboard Row -->
     <main>
-      <h2 class="text-lg font-bold text-slate-800 mb-3">1. Select Nearby Kitchen (0% Markup)</h2>
-      <div id="locationRestaurantContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- Cards will dynamically mount here safely -->
+      <h2 class="text-lg font-bold text-slate-800 mb-3">1. Live Marketplace Index (Automated Roster Rotation)</h2>
+      <div id="locationRestaurantContainer" class="grid grid-cols-1 gap-6">
+        <!-- Cards dynamically layer here via the simulation engine -->
       </div>
     </main>
 
     <!-- Active Courier Telemetry Track View Panel -->
-    <section id="trackingView" class="hidden bg-white p-6 rounded-2xl border border-slate-200 shadow-md space-y-4">
+    <section id="trackingView" class="hidden bg-white p-6 rounded-2xl border border-slate-200 shadow-md space-y-4 transition-all duration-300">
       <div class="flex justify-between items-start border-b border-slate-100 pb-3">
         <div>
           <h2 class="text-lg font-bold text-slate-800" id="activeOrderText">Tracking order...</h2>
-          <p class="text-xs text-slate-400">Hub: <span id="trackHubName" class="font-semibold text-slate-600">-</span></p>
+          <p class="text-xs text-slate-400">Hub Asset Node: <span id="trackHubName" class="font-semibold text-slate-600">-</span></p>
         </div>
         <span id="trackDistanceBadge" class="bg-slate-900 text-white text-xs font-bold px-2 py-1 rounded-md">-</span>
       </div>
@@ -51,49 +57,48 @@
         <div id="trackerProgressLine" class="absolute top-1/2 left-0 w-0 h-1 bg-amber-500 transform -translate-y-1/2 rounded transition-all duration-150"></div>
         
         <div class="relative flex justify-between items-center text-xl">
-          <div id="node-restaurant" class="w-10 h-10 rounded-full bg-slate-800 text-white flex items-center justify-center shadow-md relative z-10">🏪</div>
+          <div id="node-restaurant" class="w-10 h-10 rounded-full bg-slate-800 text-white flex items-center justify-center shadow-md relative z-10 transition-all duration-300">🏪</div>
           <div id="movingRiderIndicator" class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 text-2xl transition-all duration-150 z-20">🛵</div>
-          <div id="node-customer" class="w-10 h-10 rounded-full bg-slate-700 text-white flex items-center justify-center shadow-md relative z-10 transition-all">🏠</div>
+          <div id="node-customer" class="w-10 h-10 rounded-full bg-slate-700 text-white flex items-center justify-center shadow-md relative z-10 transition-all duration-300">🏠</div>
         </div>
       </div>
 
       <div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100 text-xs">
-        <div id="liveStatusConsole" class="text-slate-600 font-medium">System idle. Select a kitchen hub above to simulate delivery.</div>
+        <div id="liveStatusConsole" class="text-slate-600 font-medium">System processing...</div>
         <div id="liveEtaTicker" class="font-bold text-slate-800 shrink-0 ml-2">ETA: --m</div>
       </div>
-      
-      <button id="resetTrackerBtn" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-medium py-2 rounded-lg transition">Reset Tracking Simulator</button>
     </section>
   </div>
 
   <!-- Javascript Logic Variables & Telemetry Engine Context Scripts -->
   <script>
-    // Sample Mock Data (Required so the engine can render cards automatically)
+    // Expanded Multi-Category Mock Kitchen Data Configuration Array
     const LAUNCH_RESTAURANTS = [
-      { name: "Sector 2 Central Kitchen", area: "Faridabad Sector 2", item: "Premium Butter Chicken Thali", basePrice: 220, appPrice: 290, lat: 28.3410, lon: 77.3320 },
-      { name: "Delhi Border Cloud Hub", area: "Sector 37 Industrial Area", item: "Paneer Lababdar Combo", basePrice: 180, appPrice: 245, lat: 28.3650, lon: 77.3120 }
+      { name: "Sector 2 Central Kitchen", area: "Faridabad Sector 2", item: "Premium Butter Chicken Thali", basePrice: 220, appPrice: 295, lat: 28.3410, lon: 77.3320 },
+      { name: "Burger Junction Cloud Hub", area: "NIT Faridabad Industrial Zone", item: "Crunchy Double Patty Meal", basePrice: 160, appPrice: 230, lat: 28.3810, lon: 77.3050 },
+      { name: "Sweet Tooth Delights", area: "Sector 15 Main Market", item: "Loaded Hot Fudge Brownie Sunday", basePrice: 120, appPrice: 185, lat: 28.3580, lon: 77.3190 }
     ];
 
-    /**
-     * DirectBite Engine Code Execution Boundary Context
-     */
     (() => {
       "use strict";
 
       const EARTH_RADIUS_KM = 6371;
-      const DELIVERED_PROGRESS_PCT = 100;
-      
-      const ZOMATO_PLATFORM_FEE = 6;
-      const ZOMATO_DELIVERY_CHARGE = 40;
-      
-      const SWIGGY_PLATFORM_FEE = 7;
-      const SWIGGY_DELIVERY_CHARGE = 45;
-      
       const ESTIMATED_TAX_RATE = 0.05;
+
+      // Base Platform Fees before Multipliers are applied
+      const BASE_ZOMATO_PLATFORM_FEE = 6;
+      const BASE_SWIGGY_PLATFORM_FEE = 7;
 
       let currentCustomerLat = 28.3400;
       let currentCustomerLon = 77.3300;
+      
       let activeInterval = null;
+      let automationTimeout = null;
+      let currentKitchenIndex = 0;
+      
+      // Global Market Demand States
+      let liveSurgeMultiplier = 1.0;
+      let isPeakHour = false;
 
       function calculateHaversineDistance(lat1, lon1, lat2, lon2) {
         const toRad = (value) => (value * Math.PI) / 180;
@@ -111,90 +116,77 @@
         return div.innerHTML;
       }
 
-      function createPricingPanelHTML(basePrice, appPrice) {
+      /**
+       * System Demand Controller: Cycles between Normal Operations and high-intensity Peak Rush Hours
+       */
+      function cycleMarketDemandState() {
+        isPeakHour = !isPeakHour;
+        const badge = document.getElementById("globalSurgeBadge");
+        const body = document.getElementById("bodyCtx");
+
+        if (isPeakHour) {
+          // Generate an active dynamic surge scale between 1.8x and 2.4x multiplier values
+          liveSurgeMultiplier = parseFloat((Math.random() * (2.4 - 1.8) + 1.8).toFixed(2));
+          if (badge) {
+            badge.className = "px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 bg-rose-600 text-white shadow-lg animate-pulse border border-rose-500";
+            badge.innerText = `🚨 PEAK RUSH HOUR (${liveSurgeMultiplier}x Aggregator Surge)`;
+          }
+          if (body) body.classList.replace("bg-slate-100", "bg-rose-50/30");
+        } else {
+          liveSurgeMultiplier = 1.0;
+          if (badge) {
+            badge.className = "px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 bg-emerald-600 text-white shadow-md border border-emerald-500";
+            badge.innerText = "🟢 Normal Market Conditions (Standard Rates)";
+          }
+          if (body) body.classList.replace("bg-rose-50/30", "bg-slate-100");
+        }
+        
+        // Re-calculate the layout parameters instantly to show the live rate variations
+        renderRestaurantDashboard();
+      }
+
+      /**
+       * Calculates real-time dynamically scaled logistics costs based on distance parameters
+       */
+      function calculateLiveLogistics(distance) {
+        const d = Math.max(distance, 1);
+        
+        // Direct Logistics (Porter, Shadowfax, Borzo) maintain strict distance calculations
+        const shadowfax = d <= 2 ? 39 : Math.round(39 + (d - 2) * 9.5);
+        const porter = d <= 3 ? 48 : Math.round(48 + (d - 3) * 11);
+        const borzo = d <= 2 ? 45 : Math.round(45 + (d - 2) * 10);
+
+        // Aggregators apply the surge multiplier to both delivery fees and platform components
+        const baseZomatoDel = 40 + (d * 8);
+        const baseSwiggyDel = 45 + (d * 9);
+
+        const zomatoDelivery = Math.round(baseZomatoDel * liveSurgeMultiplier);
+        const swiggyDelivery = Math.round(baseSwiggyDel * liveSurgeMultiplier);
+        
+        const zomatoPlatform = Math.round(BASE_ZOMATO_PLATFORM_FEE * (isPeakHour ? liveSurgeMultiplier * 0.8 : 1));
+        const swiggyPlatform = Math.round(BASE_SWIGGY_PLATFORM_FEE * (isPeakHour ? liveSurgeMultiplier * 0.8 : 1));
+
+        return { porter, shadowfax, borzo, zomatoDelivery, swiggyDelivery, zomatoPlatform, swiggyPlatform };
+      }
+
+      function createPricingPanelHTML(basePrice, appPrice, distance) {
         const directBase = basePrice || 0;
         const aggregatorBase = appPrice || directBase;
+        const delivery = calculateLiveLogistics(distance);
         
         const directTax = Math.round(directBase * ESTIMATED_TAX_RATE);
         const directTotal = directBase + directTax;
         
         const zomatoTax = Math.round(aggregatorBase * ESTIMATED_TAX_RATE);
-        const zomatoTotal = aggregatorBase + ZOMATO_PLATFORM_FEE + ZOMATO_DELIVERY_CHARGE + zomatoTax;
+        const zomatoTotal = aggregatorBase + delivery.zomatoPlatform + delivery.zomatoDelivery + zomatoTax;
         
         const swiggyTax = Math.round(aggregatorBase * ESTIMATED_TAX_RATE);
-        const swiggyTotal = aggregatorBase + SWIGGY_PLATFORM_FEE + SWIGGY_DELIVERY_CHARGE + swiggyTax;
+        const swiggyTotal = aggregatorBase + delivery.swiggyPlatform + delivery.swiggyDelivery + swiggyTax;
         
-        const maxSaved = Math.max(zomatoTotal, swiggyTotal) - directTotal;
+        const maxAggregatorCost = Math.max(zomatoTotal, swiggyTotal);
+        const netConsumerSavings = maxAggregatorCost - directTotal;
 
         return `
-          <div class="mt-3 p-3 bg-slate-50 border border-slate-100 rounded-lg text-xs space-y-2">
-            <div class="font-semibold text-slate-700 flex justify-between items-center border-b border-slate-200 pb-2">
-              <span>📊 Live Market Rate Comparison</span>
-              <span class="text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded">Save up to ₹${maxSaved}</span>
-            </div>
-            <table class="w-full text-left border-collapse text-slate-600">
-              <thead>
-                <tr class="text-slate-400 font-medium border-b border-slate-100">
-                  <th class="pb-1.5">Line Items</th>
-                  <th class="pb-1.5 text-right text-slate-700 font-bold">DirectBite</th>
-                  <th class="pb-1.5 text-right">Zomato</th>
-                  <th class="pb-1.5 text-right">Swiggy</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td class="py-1">Menu Price</td>
-                  <td class="text-right font-medium text-slate-800">₹${directBase}</td>
-                  <td class="text-right text-rose-500">₹${aggregatorBase}</td>
-                  <td class="text-right text-orange-500">₹${aggregatorBase}</td>
-                </tr>
-                <tr>
-                  <td class="py-1">Platform Fee</td>
-                  <td class="text-right text-emerald-600 font-medium">₹0</td>
-                  <td class="text-right">₹${ZOMATO_PLATFORM_FEE}</td>
-                  <td class="text-right">₹${SWIGGY_PLATFORM_FEE}</td>
-                </tr>
-                <tr>
-                  <td class="py-1">Delivery Charge</td>
-                  <td class="text-right text-emerald-600 font-medium">₹0</td>
-                  <td class="text-right">₹${ZOMATO_DELIVERY_CHARGE}</td>
-                  <td class="text-right">₹${SWIGGY_DELIVERY_CHARGE}</td>
-                </tr>
-                <tr class="border-b border-slate-200">
-                  <td class="py-1 pb-1.5">GST (5%)</td>
-                  <td class="text-right pb-1.5">₹${directTax}</td>
-                  <td class="text-right pb-1.5">₹${zomatoTax}</td>
-                  <td class="text-right pb-1.5">₹${swiggyTax}</td>
-                </tr>
-                <tr class="font-semibold text-slate-800">
-                  <td class="pt-1.5 text-slate-700">Total Bill</td>
-                  <td class="pt-1.5 text-right text-sm text-emerald-600 font-bold">₹${directTotal}</td>
-                  <td class="pt-1.5 text-right text-slate-400 line-through">₹${zomatoTotal}</td>
-                  <td class="pt-1.5 text-right text-slate-400 line-through">₹${swiggyTotal}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        `;
-      }
-
-      function renderRestaurantDashboard() {
-        const container = document.getElementById("locationRestaurantContainer");
-        if (!container) return;
-
-        const sourceData = typeof LAUNCH_RESTAURANTS !== 'undefined' ? LAUNCH_RESTAURANTS : [];
-        if (!sourceData.length) {
-          container.innerHTML = `<p class="text-slate-500 text-sm p-4">No active kitchen hubs available.</p>`;
-          return;
-        }
-
-        const processedList = sourceData
-          .map(r => ({
-            ...r,
-            distance: calculateHaversineDistance(currentCustomerLat, currentCustomerLon, r.lat, r.lon)
-          }))
-          .sort((a, b) => a.distance - b.distance);
-
-        container.innerHTML = ""; 
-
-        processedList.forEach(kitchen => {
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-3">
+            <!-- Column A: B2C App Comparisons -->
+            <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-2">
