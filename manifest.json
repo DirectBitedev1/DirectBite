@@ -2,7 +2,7 @@
   "name": "DirectBite Food Exchange",
   "short_name": "DirectBite",
   "description": "0% Commission Peer-to-Peer Food Delivery Network",
-  "start_url": "/index.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#059669",
   "theme_color": "#059669",
