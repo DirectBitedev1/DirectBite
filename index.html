@@ -1,3 +1,4 @@
+html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,73 +7,105 @@
   <title>DirectBite | Realtime 0% Commission Food & Live Logistics Exchange</title>
   <!-- Load Tailwind CSS Framework for Styling -->
   <script src="https://jsdelivr.net"></script>
+  <style>
+    /* Premium Smooth UI Transitions */
+    .smooth-fill { transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    .map-grid { background-image: radial-gradient(#cbd5e1 1px, transparent 1px); background-size: 16px 16px; }
+  </style>
 </head>
-<body class="bg-slate-100 font-sans min-h-screen p-4 md:p-8 transition-colors duration-500" id="bodyCtx">
+<body class="bg-slate-50 font-sans min-h-screen text-slate-900 transition-colors duration-500" id="bodyCtx">
 
-  <div class="max-w-4xl mx-auto space-y-6">
+  <div class="max-w-5xl mx-auto p-4 md:p-8 space-y-6">
     <!-- Header Banner -->
-    <header class="bg-slate-900 text-white p-6 rounded-2xl shadow-md flex flex-wrap justify-between items-center gap-4">
+    <header class="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 text-white p-6 rounded-3xl shadow-xl flex flex-wrap justify-between items-center gap-4 border border-slate-700/50">
       <div>
-        <h1 class="text-2xl font-bold">DirectBite | Realtime 0% Food & Logistics Exchange</h1>
-        <p class="text-slate-400 text-sm mt-1">Active User Location Hub: <span id="userCityBadge" class="text-amber-400 font-semibold font-mono">Tracking GPS...</span></p>
+        <div class="flex items-center gap-2">
+          <span class="text-2xl">⚡</span>
+          <h1 class="text-2xl font-black tracking-tight">DirectBite Matrix</h1>
+        </div>
+        <p class="text-slate-400 text-xs mt-1 font-medium">Active User Location Hub: <span id="userCityBadge" class="text-amber-400 font-bold font-mono bg-slate-900/60 px-2 py-0.5 rounded border border-slate-800">Requesting GPS Access...</span></p>
       </div>
       <!-- Surge Indicator Status Badge -->
-      <div id="globalSurgeBadge" class="px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 bg-slate-800 text-slate-300 border border-slate-700">
+      <div id="globalSurgeBadge" class="px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-300 bg-slate-800 text-slate-300 border border-slate-700 shadow-inner">
         ⌛ Calibrating Market Demand...
       </div>
     </header>
 
     <!-- Automated Status Stream Controls Panel -->
-    <section class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-wrap gap-3 items-center justify-between">
-      <div class="text-xs text-slate-600 font-medium">
-        Telemetry Link: <span id="currentCoordsText" class="text-slate-800 font-bold">Requesting hardware sensor permissions...</span>
+    <section class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-wrap gap-3 items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="h-2.5 w-2.5 rounded-full bg-amber-500 animate-ping" id="statusPulse"></div>
+        <div class="text-xs text-slate-600 font-medium">
+          Telemetry Link: <span id="currentCoordsText" class="text-slate-800 font-bold font-mono">Initializing strict hardware sensor request...</span>
+        </div>
       </div>
-      <div class="flex items-center gap-2">
-        <span class="inline-flex h-2 w-2 rounded-full bg-emerald-500 animate-ping"></span>
-        <span class="text-[11px] uppercase tracking-wider font-bold text-slate-400">Realtime Tracking Mode</span>
+      <div class="bg-slate-100 text-slate-600 text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-md border border-slate-200">
+        Live Index Feed
       </div>
     </section>
 
-    <!-- Restaurant Dashboard Row -->
-    <main>
-      <h2 class="text-lg font-bold text-slate-800 mb-3">1. Live Marketplace Index (Calculated from Your Location)</h2>
-      <div id="locationRestaurantContainer" class="grid grid-cols-1 gap-6">
-        <!-- Cards dynamically layer here via the simulation engine -->
-      </div>
-    </main>
-
-    <!-- Active Courier Telemetry Track View Panel -->
-    <section id="trackingView" class="hidden bg-white p-6 rounded-2xl border border-slate-200 shadow-md space-y-4 transition-all duration-300">
-      <div class="flex justify-between items-start border-b border-slate-100 pb-3">
-        <div>
-          <h2 class="text-lg font-bold text-slate-800" id="activeOrderText">Tracking order...</h2>
-          <p class="text-xs text-slate-400">Hub Asset Node: <span id="trackHubName" class="font-semibold text-slate-600">-</span></p>
+    <!-- Main Grid Dashboard Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <!-- Left 2 Columns: Restaurant Deck Indices -->
+      <main class="lg:col-span-2 space-y-4">
+        <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+          <span>📋</span> Nearby Cloud Kitchen Logs
+        </h2>
+        <div id="locationRestaurantContainer" class="space-y-4">
+          <!-- Cards dynamically layer here via the simulation engine -->
         </div>
-        <span id="trackDistanceBadge" class="bg-slate-900 text-white text-xs font-bold px-2 py-1 rounded-md">-</span>
-      </div>
+      </main>
 
-      <!-- Live Map Nodes Progress Track Bar -->
-      <div class="relative py-6">
-        <div class="absolute top-1/2 left-0 w-full h-1 bg-slate-200 transform -translate-y-1/2 rounded"></div>
-        <div id="trackerProgressLine" class="absolute top-1/2 left-0 w-0 h-1 bg-amber-500 transform -translate-y-1/2 rounded transition-all duration-150"></div>
+      <!-- Right Column: Live Visual Map & Order Analytics View Panel -->
+      <aside class="space-y-4">
+        <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+          <span>🎯</span> Live Operations Tracker
+        </h2>
         
-        <div class="relative flex justify-between items-center text-xl">
-          <div id="node-restaurant" class="w-10 h-10 rounded-full bg-slate-800 text-white flex items-center justify-center shadow-md relative z-10 transition-all duration-300">🏪</div>
-          <div id="movingRiderIndicator" class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 text-2xl transition-all duration-150 z-20">🛵</div>
-          <div id="node-customer" class="w-10 h-10 rounded-full bg-slate-700 text-white flex items-center justify-center shadow-md relative z-10 transition-all duration-300">🏠</div>
-        </div>
-      </div>
+        <section id="trackingView" class="hidden bg-white p-5 rounded-3xl border border-slate-200 shadow-md space-y-4 sticky top-6">
+          <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+            <div>
+              <h3 class="font-bold text-slate-800 text-sm tracking-tight" id="activeOrderText">Awaiting Telemetry</h3>
+              <p class="text-[11px] text-slate-400 mt-0.5 truncate max-w-[180px]">Node: <span id="trackHubName" class="font-semibold text-slate-600">-</span></p>
+            </div>
+            <span id="trackDistanceBadge" class="bg-slate-900 text-white text-[11px] font-mono font-bold px-2 py-1 rounded-lg shadow-sm">-</span>
+          </div>
 
-      <div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100 text-xs">
-        <div id="liveStatusConsole" class="text-slate-600 font-medium">System processing...</div>
-        <div id="liveEtaTicker" class="font-bold text-slate-800 shrink-0 ml-2">ETA: --m</div>
-      </div>
-    </section>
+          <!-- Premium Interactive Visual Map Simulation Canvas -->
+          <div class="h-44 w-full bg-slate-50 rounded-2xl border border-slate-200/60 relative overflow-hidden map-grid shadow-inner flex flex-col justify-between p-3">
+            <div class="text-[9px] uppercase tracking-wider font-bold text-slate-400 select-none">Simulated Airspace Navigation Path</div>
+            
+            <!-- Dynamic Vector Connector Line Element -->
+            <svg class="absolute inset-0 w-full h-full pointer-events-none">
+              <line id="mapVectorLine" x1="15%" y1="75%" x2="85%" y2="25%" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="4 4" class="transition-all duration-300" />
+              <line id="mapVectorProgress" x1="15%" y1="75%" x2="15%" y2="75%" stroke="#f59e0b" stroke-width="2.5" class="transition-all duration-150" />
+            </svg>
+
+            <!-- Map Icons Pin Layout Elements -->
+            <div class="relative w-full h-full">
+              <!-- Kitchen Pin Node -->
+              <div id="mapNodeRest" class="absolute bottom-4 left-[10%] -translate-x-1/2 bg-white h-9 w-9 rounded-full shadow border-2 border-slate-800 flex items-center justify-center text-base z-10 transition-transform duration-300">🏪</div>
+              <!-- Moving Vehicle Asset Node -->
+              <div id="movingRiderIndicator" class="absolute bottom-4 left-[10%] -translate-y-1/2 -translate-x-1/2 text-2xl z-20 transition-all duration-150 transform -scale-x-1" style="bottom: 16%; left: 10%;">🛵</div>
+              <!-- Destination Customer Node -->
+              <div id="mapNodeCust" class="absolute top-4 right-[10%] translate-x-1/2 bg-white h-9 w-9 rounded-full shadow border-2 border-slate-500 flex items-center justify-center text-base z-10 transition-all duration-300">🏠</div>
+            </div>
+          </div>
+
+          <!-- Console Dynamic Metrics Indicator Ticker -->
+          <div class="bg-slate-900 text-slate-100 p-3.5 rounded-xl border border-slate-800 text-[11px] font-mono flex justify-between items-start gap-3 shadow-inner">
+            <div id="liveStatusConsole" class="text-slate-400 leading-relaxed">System processing standby. Select menu dishes to track live hyper-logistics margins.</div>
+            <div id="liveEtaTicker" class="font-bold text-amber-400 shrink-0 bg-slate-800 px-2 py-0.5 rounded border border-slate-700">ETA: --m</div>
+          </div>
+        </section>
+      </aside>
+
+    </div>
   </div>
 
   <!-- Javascript Logic Variables & Telemetry Engine Context Scripts -->
   <script>
-    // System automatically generates mock restaurant coordinates dynamic to the user's unlocked baseline location
     let LAUNCH_RESTAURANTS = [];
 
     (() => {
@@ -84,7 +117,6 @@
       const BASE_ZOMATO_PLATFORM_FEE = 6;
       const BASE_SWIGGY_PLATFORM_FEE = 7;
 
-      // Baseline simulation fallback parameters centered on Faridabad Sector 2 zone
       let currentCustomerLat = 28.3400;
       let currentCustomerLon = 77.3300;
       
@@ -112,85 +144,53 @@
       }
 
       /**
-       * Dynamically generates localized nearby kitchen coordinates based completely on the user's current physical position
+       * Dynamically generates localized nearby kitchen coordinates based completely on the user's current physical position.
+       * Added specific visual design properties (tags, borders, accent classes) based on category location context.
        */
       function loadLocalizedKitchenRoster(lat, lon) {
         LAUNCH_RESTAURANTS = [
-          { name: "Local Central Kitchen Alpha", area: "Immediate Neighborhood Tier", item: "Premium Special Thali Combo", basePrice: 220, appPrice: 295, lat: lat + 0.004, lon: lon + 0.003 },
-          { name: "Gourmet Burger Junction", area: "Commercial Highstreet Zone", item: "Crunchy Double Patty Meal", basePrice: 160, appPrice: 230, lat: lat + 0.012, lon: lon - 0.008 },
-          { name: "Sweet Tooth Dessert Hub", area: "Metro Station Hub Market", item: "Loaded Hot Fudge Brownie Sunday", basePrice: 120, appPrice: 185, lat: lat - 0.006, lon: lon + 0.005 }
-        ];
-      }
-
-      /**
-       * Reverse Geocoder API Call: Resolves raw hardware coordinates into human-readable city names in real-time
-       */
-      async function fetchUserRealtimeNeighborhood(lat, lon) {
-        const badge = document.getElementById("userCityBadge");
-        try {
-          const response = await fetch(`https://bigdatacloud.net{lat}&longitude=${lon}&localityLanguage=en`);
-          const data = await response.json();
-          if (badge && data.locality) {
-            badge.innerText = `${data.locality}, ${data.principalSubdivision || ''}`;
-          } else if (badge) {
-            badge.innerText = `${data.city || 'Location Locked'}`;
-          }
-        } catch (e) {
-          if (badge) badge.innerText = "Location Verified ✔";
-        }
-      }
-
-      function cycleMarketDemandState() {
-        isPeakHour = !isPeakHour;
-        const badge = document.getElementById("globalSurgeBadge");
-        const body = document.getElementById("bodyCtx");
-
-        if (isPeakHour) {
-          liveSurgeMultiplier = parseFloat((Math.random() * (2.4 - 1.8) + 1.8).toFixed(2));
-          if (badge) {
-            badge.className = "px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 bg-rose-600 text-white shadow-lg animate-pulse border border-rose-500";
-            badge.innerText = `🚨 PEAK RUSH HOUR (${liveSurgeMultiplier}x Aggregator Surge)`;
-          }
-          if (body) body.classList.replace("bg-slate-100", "bg-rose-50/30");
-        } else {
-          liveSurgeMultiplier = 1.0;
-          if (badge) {
-            badge.className = "px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 bg-emerald-600 text-white shadow-md border border-emerald-500";
-            badge.innerText = "🟢 Normal Market Conditions (Standard Rates)";
-          }
-          if (body) body.classList.replace("bg-rose-50/30", "bg-slate-100");
-        }
-        
-        renderRestaurantDashboard();
-      }
-
-      function calculateLiveLogistics(distance) {
-        const d = Math.max(distance, 0.5);
-        
-        const shadowfax = d <= 2 ? 39 : Math.round(39 + (d - 2) * 9.5);
-        const porter = d <= 3 ? 48 : Math.round(48 + (d - 3) * 11);
-        const borzo = d <= 2 ? 45 : Math.round(45 + (d - 2) * 10);
-
-        const baseZomatoDel = 40 + (d * 8);
-        const baseSwiggyDel = 45 + (d * 9);
-
-        const zomatoDelivery = Math.round(baseZomatoDel * liveSurgeMultiplier);
-        const swiggyDelivery = Math.round(baseSwiggyDel * liveSurgeMultiplier);
-        
-        const zomatoPlatform = Math.round(BASE_ZOMATO_PLATFORM_FEE * (isPeakHour ? liveSurgeMultiplier * 0.8 : 1));
-        const swiggyPlatform = Math.round(BASE_SWIGGY_PLATFORM_FEE * (isPeakHour ? liveSurgeMultiplier * 0.8 : 1));
-
-        return { porter, shadowfax, borzo, zomatoDelivery, swiggyDelivery, zomatoPlatform, swiggyPlatform };
-      }
-
-      function createPricingPanelHTML(basePrice, appPrice, distance) {
-        const directBase = basePrice || 0;
-        const aggregatorBase = appPrice || directBase;
-        const delivery = calculateLiveLogistics(distance);
-        
-        const directTax = Math.round(directBase * ESTIMATED_TAX_RATE);
-        const directTotal = directBase + directTax;
-        
-        const zomatoTax = Math.round(aggregatorBase * ESTIMATED_TAX_RATE);
-        const zomatoTotal = aggregatorBase + delivery.zomatoPlatform + delivery.zomatoDelivery + zomatoTax;
-        
+          { 
+            name: "Sector 2 Gourmet Kitchen", 
+            area: "Faridabad Sector 2", 
+            lat: lat + 0.005, 
+            lon: lon + 0.004,
+            selectedMenuIndex: 0,
+            visuals: {
+              categoryTag: "🍲 North Indian meals",
+              accentBorder: "border-l-4 border-l-indigo-600",
+              badgeStyle: "bg-indigo-50 text-indigo-700 border border-indigo-100",
+              mapEmoji: "🍛"
+            },
+            menu: [
+              { item: "Premium Butter Chicken Meal Box", basePrice: 220, appPrice: 295 },
+              { item: "Family Choice Gathering Pack", basePrice: 890, appPrice: 1240 },
+              { item: "Budget Lunch Dal Tadka Mini Cup", basePrice: 95, appPrice: 140 }
+            ]
+          },
+          { 
+            name: "Burger Junction Fast-Food Cloud", 
+            area: "NIT Industrial Complex Area", 
+            lat: lat + 0.012, 
+            lon: lon - 0.009,
+            selectedMenuIndex: 0,
+            visuals: {
+              categoryTag: "🍔 American Fast Food",
+              accentBorder: "border-l-4 border-l-amber-500",
+              badgeStyle: "bg-amber-50 text-amber-700 border border-amber-100",
+              mapEmoji: "🍔"
+            },
+            menu: [
+              { item: "Crunchy Double Patty Crisp Burger Combo", basePrice: 160, appPrice: 235 },
+              { item: "Office Bulk Corporate Meal Pack", basePrice: 620, appPrice: 860 },
+              { item: "Single Grilled Aloo Wrap Quick Bite", basePrice: 75, appPrice: 115 }
+            ]
+          },
+          { 
+            name: "Sweet Tooth Artisan Dessert Hub", 
+            area: "Sector 15 Shopping Lane Market", 
+            lat: lat - 0.007, 
+            lon: lon + 0.006,
+            selectedMenuIndex: 0,
+            visuals: {
+              categoryTag: "🍨 Desserts & Waffles",
+              accentBorder: "border-l-4 border-l-pink-500",
