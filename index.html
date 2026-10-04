@@ -1,240 +1,200 @@
-/**
- * DirectBite - 0% Commission Food Exchange Telemetry & Pricing Engine
- * Integrated real-time pricing comparisons for Zomato and Swiggy platforms.
- */
-(() => {
-  "use strict";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DirectBite | 0% Commission Food Exchange</title>
+  <!-- Load Tailwind CSS Framework for Styling -->
+  <script src="https://jsdelivr.net"></script>
+</head>
+<body class="bg-slate-100 font-sans min-h-screen p-4 md:p-8">
 
-  // System Configuration Defaults (Centered on Faridabad Sector 2 parameters)
-  const EARTH_RADIUS_KM = 6371;
-  const DELIVERED_PROGRESS_PCT = 100;
-  
-  // Real-time Third-Party Cost Model Parameters
-  const ZOMATO_PLATFORM_FEE = 6;
-  const ZOMATO_DELIVERY_CHARGE = 40;
-  
-  const SWIGGY_PLATFORM_FEE = 7;
-  const SWIGGY_DELIVERY_CHARGE = 45;
-  
-  const ESTIMATED_TAX_RATE = 0.05; // 5% Standard GST on food items
+  <div class="max-w-4xl mx-auto space-y-6">
+    <!-- Header -->
+    <header class="bg-slate-900 text-white p-6 rounded-2xl shadow-md">
+      <h1 class="text-2xl font-bold">DirectBite | 0% Commission Food Exchange</h1>
+      <p class="text-slate-400 text-sm mt-1">Real-time dynamic billing compared against market aggregators.</p>
+    </header>
 
-  let currentCustomerLat = 28.3400;
-  let currentCustomerLon = 77.3300;
-  let activeInterval = null;
-
-  /**
-   * Pure Haversine formula calculation logic
-   */
-  function calculateHaversineDistance(lat1, lon1, lat2, lon2) {
-    const toRad = (value) => (value * Math.PI) / 180;
-    const dLat = toRad(lat2 - lat1);
-    const dLon = toRad(lon2 - lon1);
-    
-    const a = 
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * 
-      Math.sin(dLon / 2) * Math.sin(dLon / 2);
-      
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return EARTH_RADIUS_KM * c;
-  }
-
-  /**
-   * Sanitizes user/API text strings to prevent cross-site scripting (XSS)
-   */
-  function escapeHTML(str) {
-    if (!str) return '';
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
-  }
-
-  /**
-   * Generates a dynamic multi-platform pricing breakdown grid
-   */
-  function createPricingPanelHTML(basePrice, appPrice) {
-    const directBase = basePrice || 0;
-    // Aggregators usually feature inflated menu prices compared to direct base prices
-    const aggregatorBase = appPrice || directBase;
-    
-    // 1. DirectBite Calculations
-    const directTax = Math.round(directBase * ESTIMATED_TAX_RATE);
-    const directTotal = directBase + directTax;
-    
-    // 2. Zomato Calculations
-    const zomatoTax = Math.round(aggregatorBase * ESTIMATED_TAX_RATE);
-    const zomatoTotal = aggregatorBase + ZOMATO_PLATFORM_FEE + ZOMATO_DELIVERY_CHARGE + zomatoTax;
-    
-    // 3. Swiggy Calculations
-    const swiggyTax = Math.round(aggregatorBase * ESTIMATED_TAX_RATE);
-    const swiggyTotal = aggregatorBase + SWIGGY_PLATFORM_FEE + SWIGGY_DELIVERY_CHARGE + swiggyTax;
-    
-    // Calculate maximum amount saved compared to the worst-case alternative
-    const maxSaved = Math.max(zomatoTotal, swiggyTotal) - directTotal;
-
-    return `
-      <div class="mt-3 p-3 bg-slate-50 border border-slate-100 rounded-lg text-xs space-y-2">
-        <div class="font-semibold text-slate-700 flex justify-between items-center border-b border-slate-200 pb-2">
-          <span>📊 Live Market Rate Comparison</span>
-          <span class="text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded">Save up to ₹${maxSaved}</span>
-        </div>
-        <table class="w-full text-left border-collapse text-slate-600">
-          <thead>
-            <tr class="text-slate-400 font-medium border-b border-slate-100">
-              <th class="pb-1.5">Line Items</th>
-              <th class="pb-1.5 text-right text-slate-700 font-bold">DirectBite</th>
-              <th class="pb-1.5 text-right">Zomato</th>
-              <th class="pb-1.5 text-right">Swiggy</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td class="py-1">Menu Price</td>
-              <td class="text-right font-medium text-slate-800">₹${directBase}</td>
-              <td class="text-right text-rose-500">₹${aggregatorBase}</td>
-              <td class="text-right text-orange-500">₹${aggregatorBase}</td>
-            </tr>
-            <tr>
-              <td class="py-1">Platform Fee</td>
-              <td class="text-right text-emerald-600 font-medium">₹0</td>
-              <td class="text-right">₹${ZOMATO_PLATFORM_FEE}</td>
-              <td class="text-right">₹${SWIGGY_PLATFORM_FEE}</td>
-            </tr>
-            <tr>
-              <td class="py-1">Delivery Charge</td>
-              <td class="text-right text-emerald-600 font-medium">₹0</td>
-              <td class="text-right">₹${ZOMATO_DELIVERY_CHARGE}</td>
-              <td class="text-right">₹${SWIGGY_DELIVERY_CHARGE}</td>
-            </tr>
-            <tr class="border-b border-slate-200">
-              <td class="py-1 pb-1.5">GST (5%)</td>
-              <td class="text-right pb-1.5">₹${directTax}</td>
-              <td class="text-right pb-1.5">₹${zomatoTax}</td>
-              <td class="text-right pb-1.5">₹${swiggyTax}</td>
-            </tr>
-            <tr class="font-semibold text-slate-800">
-              <td class="pt-1.5 text-slate-700">Total Bill</td>
-              <td class="pt-1.5 text-right text-sm text-emerald-600 font-bold">₹${directTotal}</td>
-              <td class="pt-1.5 text-right text-slate-400 line-through">₹${zomatoTotal}</td>
-              <td class="pt-1.5 text-right text-slate-400 line-through">₹${swiggyTotal}</td>
-            </tr>
-          </tbody>
-        </table>
+    <!-- Controls Row -->
+    <section class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-wrap gap-3 items-center justify-between">
+      <div class="text-xs text-slate-600 font-medium">
+        Status: <span id="currentCoordsText" class="text-slate-800 font-bold">Awaiting telemetry calibration...</span>
       </div>
-    `;
-  }
+      <div class="flex gap-2">
+        <button id="refreshGpsBtn" class="bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-semibold px-3 py-2 rounded-lg transition">📍 Refresh GPS</button>
+        <button id="simulateMoveBtn" class="bg-amber-100 hover:bg-amber-200 text-amber-800 text-xs font-semibold px-3 py-2 rounded-lg transition">🎲 Simulate Move</button>
+      </div>
+    </section>
 
-  /**
-   * Render Engine: Computes real-time sorting and appends elements safely
-   */
-  function renderRestaurantDashboard() {
-    const container = document.getElementById("locationRestaurantContainer");
-    if (!container) return;
+    <!-- Restaurant Dashboard Row -->
+    <main>
+      <h2 class="text-lg font-bold text-slate-800 mb-3">1. Select Nearby Kitchen (0% Markup)</h2>
+      <div id="locationRestaurantContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Cards will dynamically mount here safely -->
+      </div>
+    </main>
 
-    const sourceData = typeof LAUNCH_RESTAURANTS !== 'undefined' ? LAUNCH_RESTAURANTS : [];
-    if (!sourceData.length) {
-      container.innerHTML = `<p class="text-slate-500 text-sm p-4">No active kitchen hubs available.</p>`;
-      return;
-    }
-
-    const processedList = sourceData
-      .map(r => ({
-        ...r,
-        distance: calculateHaversineDistance(currentCustomerLat, currentCustomerLon, r.lat, r.lon)
-      }))
-      .sort((a, b) => a.distance - b.distance);
-
-    container.innerHTML = ""; 
-
-    processedList.forEach(kitchen => {
-      const card = document.createElement("div");
-      card.className = "bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-3";
-      
-      const safeName = escapeHTML(kitchen.name);
-      const safeArea = escapeHTML(kitchen.area);
-      const safeItem = escapeHTML(kitchen.item);
-      const distanceStr = kitchen.distance.toFixed(2);
-
-      card.innerHTML = `
+    <!-- Active Courier Telemetry Track View Panel -->
+    <section id="trackingView" class="hidden bg-white p-6 rounded-2xl border border-slate-200 shadow-md space-y-4">
+      <div class="flex justify-between items-start border-b border-slate-100 pb-3">
         <div>
-          <h3 class="font-bold text-slate-800 text-base">${safeName}</h3>
-          <p class="text-slate-500 text-xs">📍 ${safeArea} • ${distanceStr} km away</p>
-          <div class="mt-2 text-xs text-slate-600 bg-slate-100 px-2 py-1 rounded inline-block">
-            Item: <span class="font-semibold text-slate-700">${safeItem}</span>
-          </div>
+          <h2 class="text-lg font-bold text-slate-800" id="activeOrderText">Tracking order...</h2>
+          <p class="text-xs text-slate-400">Hub: <span id="trackHubName" class="font-semibold text-slate-600">-</span></p>
         </div>
+        <span id="trackDistanceBadge" class="bg-slate-900 text-white text-xs font-bold px-2 py-1 rounded-md">-</span>
+      </div>
 
-        ${createPricingPanelHTML(kitchen.basePrice, kitchen.appPrice)}
+      <!-- Live Map Nodes Progress Track Bar -->
+      <div class="relative py-6">
+        <div class="absolute top-1/2 left-0 w-full h-1 bg-slate-200 transform -translate-y-1/2 rounded"></div>
+        <div id="trackerProgressLine" class="absolute top-1/2 left-0 w-0 h-1 bg-amber-500 transform -translate-y-1/2 rounded transition-all duration-150"></div>
+        
+        <div class="relative flex justify-between items-center text-xl">
+          <div id="node-restaurant" class="w-10 h-10 rounded-full bg-slate-800 text-white flex items-center justify-center shadow-md relative z-10">🏪</div>
+          <div id="movingRiderIndicator" class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 text-2xl transition-all duration-150 z-20">🛵</div>
+          <div id="node-customer" class="w-10 h-10 rounded-full bg-slate-700 text-white flex items-center justify-center shadow-md relative z-10 transition-all">🏠</div>
+        </div>
+      </div>
 
-        <button class="order-track-btn w-full bg-slate-900 text-white rounded-lg py-2 text-xs font-medium hover:bg-slate-800 transition shadow-sm mt-2">
-          Order Direct & Track Rider
-        </button>
-      `;
+      <div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100 text-xs">
+        <div id="liveStatusConsole" class="text-slate-600 font-medium">System idle. Select a kitchen hub above to simulate delivery.</div>
+        <div id="liveEtaTicker" class="font-bold text-slate-800 shrink-0 ml-2">ETA: --m</div>
+      </div>
+      
+      <button id="resetTrackerBtn" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-medium py-2 rounded-lg transition">Reset Tracking Simulator</button>
+    </section>
+  </div>
 
-      const trackBtn = card.querySelector(".order-track-btn");
-      if (trackBtn) {
-        trackBtn.addEventListener("click", () => {
-          startDeliveryTracking(kitchen.name, kitchen.distance);
-        });
+  <!-- Javascript Logic Variables & Telemetry Engine Context Scripts -->
+  <script>
+    // Sample Mock Data (Required so the engine can render cards automatically)
+    const LAUNCH_RESTAURANTS = [
+      { name: "Sector 2 Central Kitchen", area: "Faridabad Sector 2", item: "Premium Butter Chicken Thali", basePrice: 220, appPrice: 290, lat: 28.3410, lon: 77.3320 },
+      { name: "Delhi Border Cloud Hub", area: "Sector 37 Industrial Area", item: "Paneer Lababdar Combo", basePrice: 180, appPrice: 245, lat: 28.3650, lon: 77.3120 }
+    ];
+
+    /**
+     * DirectBite Engine Code Execution Boundary Context
+     */
+    (() => {
+      "use strict";
+
+      const EARTH_RADIUS_KM = 6371;
+      const DELIVERED_PROGRESS_PCT = 100;
+      
+      const ZOMATO_PLATFORM_FEE = 6;
+      const ZOMATO_DELIVERY_CHARGE = 40;
+      
+      const SWIGGY_PLATFORM_FEE = 7;
+      const SWIGGY_DELIVERY_CHARGE = 45;
+      
+      const ESTIMATED_TAX_RATE = 0.05;
+
+      let currentCustomerLat = 28.3400;
+      let currentCustomerLon = 77.3300;
+      let activeInterval = null;
+
+      function calculateHaversineDistance(lat1, lon1, lat2, lon2) {
+        const toRad = (value) => (value * Math.PI) / 180;
+        const dLat = toRad(lat2 - lat1);
+        const dLon = toRad(lon2 - lon1);
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return EARTH_RADIUS_KM * c;
       }
 
-      container.appendChild(card);
-    });
-  }
+      function escapeHTML(str) {
+        if (!str) return '';
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+      }
 
-  /**
-   * Telemetry Tracker Loop
-   */
-  function startDeliveryTracking(rawKitchenName, distanceKm) {
-    const kitchenName = rawKitchenName || "Kitchen";
-    const trackingView = document.getElementById("trackingView");
-    if (!trackingView) return;
+      function createPricingPanelHTML(basePrice, appPrice) {
+        const directBase = basePrice || 0;
+        const aggregatorBase = appPrice || directBase;
+        
+        const directTax = Math.round(directBase * ESTIMATED_TAX_RATE);
+        const directTotal = directBase + directTax;
+        
+        const zomatoTax = Math.round(aggregatorBase * ESTIMATED_TAX_RATE);
+        const zomatoTotal = aggregatorBase + ZOMATO_PLATFORM_FEE + ZOMATO_DELIVERY_CHARGE + zomatoTax;
+        
+        const swiggyTax = Math.round(aggregatorBase * ESTIMATED_TAX_RATE);
+        const swiggyTotal = aggregatorBase + SWIGGY_PLATFORM_FEE + SWIGGY_DELIVERY_CHARGE + swiggyTax;
+        
+        const maxSaved = Math.max(zomatoTotal, swiggyTotal) - directTotal;
 
-    trackingView.classList.remove("hidden");
-    trackingView.scrollIntoView({ behavior: 'smooth' });
+        return `
+          <div class="mt-3 p-3 bg-slate-50 border border-slate-100 rounded-lg text-xs space-y-2">
+            <div class="font-semibold text-slate-700 flex justify-between items-center border-b border-slate-200 pb-2">
+              <span>📊 Live Market Rate Comparison</span>
+              <span class="text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded">Save up to ₹${maxSaved}</span>
+            </div>
+            <table class="w-full text-left border-collapse text-slate-600">
+              <thead>
+                <tr class="text-slate-400 font-medium border-b border-slate-100">
+                  <th class="pb-1.5">Line Items</th>
+                  <th class="pb-1.5 text-right text-slate-700 font-bold">DirectBite</th>
+                  <th class="pb-1.5 text-right">Zomato</th>
+                  <th class="pb-1.5 text-right">Swiggy</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="py-1">Menu Price</td>
+                  <td class="text-right font-medium text-slate-800">₹${directBase}</td>
+                  <td class="text-right text-rose-500">₹${aggregatorBase}</td>
+                  <td class="text-right text-orange-500">₹${aggregatorBase}</td>
+                </tr>
+                <tr>
+                  <td class="py-1">Platform Fee</td>
+                  <td class="text-right text-emerald-600 font-medium">₹0</td>
+                  <td class="text-right">₹${ZOMATO_PLATFORM_FEE}</td>
+                  <td class="text-right">₹${SWIGGY_PLATFORM_FEE}</td>
+                </tr>
+                <tr>
+                  <td class="py-1">Delivery Charge</td>
+                  <td class="text-right text-emerald-600 font-medium">₹0</td>
+                  <td class="text-right">₹${ZOMATO_DELIVERY_CHARGE}</td>
+                  <td class="text-right">₹${SWIGGY_DELIVERY_CHARGE}</td>
+                </tr>
+                <tr class="border-b border-slate-200">
+                  <td class="py-1 pb-1.5">GST (5%)</td>
+                  <td class="text-right pb-1.5">₹${directTax}</td>
+                  <td class="text-right pb-1.5">₹${zomatoTax}</td>
+                  <td class="text-right pb-1.5">₹${swiggyTax}</td>
+                </tr>
+                <tr class="font-semibold text-slate-800">
+                  <td class="pt-1.5 text-slate-700">Total Bill</td>
+                  <td class="pt-1.5 text-right text-sm text-emerald-600 font-bold">₹${directTotal}</td>
+                  <td class="pt-1.5 text-right text-slate-400 line-through">₹${zomatoTotal}</td>
+                  <td class="pt-1.5 text-right text-slate-400 line-through">₹${swiggyTotal}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        `;
+      }
 
-    const activeOrderText = document.getElementById("activeOrderText");
-    const trackHubName = document.getElementById("trackHubName");
-    const trackDistanceBadge = document.getElementById("trackDistanceBadge");
-    const progressLine = document.getElementById("trackerProgressLine");
-    const riderIndicator = document.getElementById("movingRiderIndicator");
-    const nodeRest = document.getElementById("node-restaurant");
-    const nodeCust = document.getElementById("node-customer");
-    const statusConsole = document.getElementById("liveStatusConsole");
-    const etaTicker = document.getElementById("liveEtaTicker");
+      function renderRestaurantDashboard() {
+        const container = document.getElementById("locationRestaurantContainer");
+        if (!container) return;
 
-    if (activeOrderText) activeOrderText.innerText = `Tracking order from ${kitchenName}`;
-    if (trackHubName) trackHubName.innerText = kitchenName;
-    if (trackDistanceBadge) trackDistanceBadge.innerText = `${distanceKm.toFixed(2)} km`;
-
-    if (activeInterval) clearInterval(activeInterval);
-    let step = 0;
-
-    activeInterval = setInterval(() => {
-      step += 1;
-      
-      if (progressLine) progressLine.style.width = `${step}%`;
-      if (riderIndicator) riderIndicator.style.left = `${step}%`;
-
-      const remDist = (distanceKm * (1 - (step / 100))).toFixed(2);
-      const remEta = Math.ceil(15 * (1 - (step / 100)));
-
-      if (step < 25) {
-        if (statusConsole) statusConsole.innerText = `🛵 Dispatching rider to ${kitchenName} hub...`;
-        if (etaTicker) etaTicker.innerText = `ETA: ${remEta + 2}m`;
-      } else if (step === 25) {
-        if (nodeRest) nodeRest.classList.add("ring-4", "ring-amber-400");
-        if (statusConsole) statusConsole.innerText = "📦 Food loaded! Rider verifying digital signature seal.";
-      } else if (step > 25 && step < 90) {
-        if (statusConsole) statusConsole.innerText = `🛣 Out for delivery. Distance left: ${remDist} km`;
-        if (etaTicker) etaTicker.innerText = `ETA: ${remEta}m`;
-      } else if (step >= 90 && step < 100) {
-        if (nodeCust) nodeCust.classList.add("animate-bounce");
-        if (statusConsole) statusConsole.innerText = "🔔 Courier approaching your matching doorstep node!";
-        if (etaTicker) etaTicker.innerText = "ETA: 1m";
-      } else if (step >= DELIVERED_PROGRESS_PCT) {
-        clearInterval(activeInterval);
-        if (nodeCust) {
-          nodeCust.classList.remove("animate-bounce", "bg-slate-700");
-          nodeCust.classList.add("bg-emerald-600");
+        const sourceData = typeof LAUNCH_RESTAURANTS !== 'undefined' ? LAUNCH_RESTAURANTS : [];
+        if (!sourceData.length) {
+          container.innerHTML = `<p class="text-slate-500 text-sm p-4">No active kitchen hubs available.</p>`;
+          return;
         }
+
+        const processedList = sourceData
+          .map(r => ({
+            ...r,
+            distance: calculateHaversineDistance(currentCustomerLat, currentCustomerLon, r.lat, r.lon)
+          }))
+          .sort((a, b) => a.distance - b.distance);
+
+        container.innerHTML = ""; 
+
+        processedList.forEach(kitchen => {
