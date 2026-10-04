@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DirectBite | 0% Commission Food Exchange</title>
+    <!-- Tailwind CSS Engine -->
+    <script src="https://tailwindcss.com"></script>
+    <link rel="manifest" href="manifest.json">
+    <script>
+        if ("serviceWorker" in navigator) {
+            window.addEventListener("load", () => {
+                navigator.serviceWorker.register("sw.js")
+                    .then(r => console.log("Mobile Engine Active!"))
+                    .catch(e => console.log("Engine Error", e));
+            });
+        }
+    </script>
+</head>
+<body class="bg-slate-50 text-slate-900 font-sans pb-12">
+
+    <!-- NAVIGATION HEADER -->
+    <header class="bg-emerald-600 text-white shadow-md p-4 sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-bold tracking-tight">🚀 DirectBite</h1>
+            <select id="roleSelector" onchange="switchRole(this.value)" class="bg-emerald-700 text-white font-medium py-1 px-3 rounded border border-emerald-500 text-sm outline-none">
+                <option value="customer">🍔 Customer View</option>
+                <option value="rider">🏍️ Rider View</option>
+                <option value="restaurant">🍳 Restaurant Dashboard</option>
+            </select>
+        </div>
+    </header>
+
+    <!-- LIVE STATS ACCOUNTING GRID -->
+    <section class="max-w-4xl mx-auto px-4 mt-4 mb-4">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">🍔 Customer Paid</p>
+                <p class="text-lg font-black text-slate-900" id="metricCustomerPaid">₹0</p>
+                <span class="text-[10px] text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded font-bold">Saved: ₹<span id="metricCustomerSaved">0</span></span>
+            </div>
+            <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">🍳 Kitchen Net Rev</p>
+                <p class="text-lg font-black text-slate-900" id="metricRestaurantEarned">₹0</p>
+                <span class="text-[10px] text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded font-bold">Loss Saved: ₹<span id="metricRestaurantSaved">0</span></span>
+            </div>
+            <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">🏍️ Rider Pool</p>
+                <p class="text-lg font-black text-emerald-600" id="metricRiderEarned">₹0</p>
+                <span class="text-[10px] text-slate-500 font-medium">Avg Bid: ₹35</span>
+            </div>
+            <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">📦 Vol Volume</p>
+                <p class="text-lg font-black text-slate-900" id="metricTotalDelivered">0</p>
+                <span class="text-[10px] text-purple-600 font-bold bg-purple-50 px-1.5 rounded">Completed</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- MAIN INTERFACE INTERACTION PANELS -->
+    <main class="max-w-4xl mx-auto p-4">
+        
+        <!-- CUSTOMER OVERLAY PANEL -->
+        <section id="customerView" class="view-panel space-y-4">
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                <h2 class="text-md font-bold mb-2">1. Select Item (Dine-In Pricing)</h2>
+                <div class="p-3 border border-slate-100 rounded-lg flex justify-between items-center bg-slate-50">
+                    <div>
+                        <p class="font-semibold text-sm">Special Chicken Biryani Thali</p>
+                        <p class="text-xs text-slate-500">Direct Menu Price: <span class="text-emerald-600 font-bold">₹220</span> <span class="line-through text-slate-400">₹310 on apps</span></p>
+                    </div>
+                    <button onclick="selectFood(220, 'Kishan Bakes', 'kishanbakes@oksbi')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-1.5 px-4 rounded text-xs shadow-sm transition">Select</button>
+                </div>
+            </div>
+            
+            <div id="customerBiddingPanel" class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 hidden">
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="text-md font-bold">2. Live Local Rider Bids</h2>
+                    <span class="animate-pulse bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full">Waiting for drivers...</span>
+                </div>
+                <div id="liveBidsList" class="space-y-2"></div>
+            </div>
+            
+            <div id="checkoutPanel" class="bg-white p-4 rounded-xl border border-emerald-200 bg-emerald-50/20 hidden">
+                <h2 class="text-md font-bold mb-2">3. Direct UPI P2P Checkout</h2>
+                <div class="p-3 bg-white border rounded-lg space-y-2 text-xs">
+                    <div class="flex justify-between"><span>Food Total:</span><span id="summaryFood" class="font-bold">₹0</span></div>
+                    <div class="flex justify-between"><span>Delivery Rider Bid:</span><span id="summaryDelivery" class="font-bold text-emerald-600">₹0</span></div>
+                    <div class="border-t pt-2 flex justify-between font-black text-sm"><span>Total Net Payout:</span><span id="summaryTotal">₹0</span></div>
+                    <a id="directUpiPayBtn" href="#" onclick="finalizeOrderSimulation(event)" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded block text-center shadow-md transition tracking-wide">Pay via Any UPI App (GPay/PhonePe)</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- RIDER BID PANEL -->
+        <section id="riderView" class="view-panel space-y-4 hidden">
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                <h2 class="text-md font-bold mb-2">Active Jobs Seeking Bids</h2>
+                <div id="riderJobsList" class="text-xs text-slate-400 text-center py-4">No requests found...</div>
+            </div>
+        </section>
+
+        <!-- RESTAURANT DASHBOARD -->
+        <section id="restaurantView" class="view-panel space-y-4 hidden">
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                <h2 class="text-md font-bold mb-2">Incoming Direct Orders</h2>
+                <div id="restaurantOrdersList" class="text-xs text-slate-400 text-center py-4">Waiting for customer checkouts...</div>
+            </div>
+        </section>
+
+        <!-- THERMAL PRINT POPUP PANEL -->
+        <section id="kitchenReceiptPanel" class="bg-white p-4 rounded-xl border border-slate-200 mt-4 shadow-sm hidden">
+            <div class="flex justify-between items-center mb-2">
+                <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider">🖨️ Thermal Print Receipt Token</h2>
+                <button onclick="window.print()" class="bg-slate-900 text-white text-xs px-2 py-1 rounded font-medium hover:bg-slate-800 transition">Print Token</button>
+            </div>
+            <div class="border p-4 max-w-[280px] mx-auto bg-white text-black font-mono text-[11px] space-y-1 shadow-inner" id="receiptPrintArea">
+                <p class="text-center font-bold text-sm">*** DIRECT BITE ***</p>
+                <p class="text-center text-[9px] text-slate-500">0% MIDDLEMAN LEAKAGE</p>
+                <div class="border-b border-dashed border-slate-300 my-2"></div>
+                <p>TOKEN ID: <span id="rcptTokenId" class="font-bold">#DB-0000</span></p>
+                <p>STATUS: PAID VIA UPI P2P</p>
+                <div class="border-b border-dashed border-slate-300 my-2"></div>
+                <p class="flex justify-between font-bold"><span>1x Chicken Biryani Thali</span><span id="rcptFood">₹0</span></p>
+                <p class="flex justify-between text-[10px]"><span>Rider Delivery Payout:</span><span id="rcptDelivery">₹0</span></p>
+                <div class="border-t border-dotted border-slate-400 pt-1 flex justify-between font-bold text-sm"><span>NET AMOUNT:</span><span id="rcptTotal">₹0</span></div>
+                <div class="border-b border-dashed border-slate-300 my-2"></div>
+                <p class="text-[10px] font-bold text-slate-600">DELIVERY DESTINATION:</p>
+                <p class="text-[10px] leading-tight" id="rcptAddress">Flat 502, Wing-C, Emerald Greens Residency Hub</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- CORE SYSTEM BACKEND INTEGRATION ENGINE -->
+    <script>
+        // --- PROD CONFIGURATION LAYER ---
+        // Switch out these configurations once your live production Supabase instance is ready
+        const SUPABASE_URL = "https://supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.your-key-here";
+        
+        // Safe Fallback Client Scaffold Integration System 
+        const supabase = {
+            createClient: (url, key) => ({
+                from: (table) => ({
+                    select: () => Promise.resolve({ data: [], error: null }),
+                    insert: (data) => Promise.resolve({ data: data, error: null }),
+                    update: (data) => ({ match: () => Promise.resolve({ data: data, error: null }) })
+                })
+            })
+        };
+        const dbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // --- APP STATE CONFIGURATION ---
+        let currentOrder = { food_cost: 0, restaurant_name: "", restaurant_vpa: "", selected_fee: 0 };
