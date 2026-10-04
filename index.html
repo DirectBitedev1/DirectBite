@@ -29,8 +29,224 @@
                 </div>
             </div>
         </section>
-    </main>
-    <script>
+  <main class="max-w-4xl mx-auto p-4 space-y-6">
+    <!-- 1. Nearby Kitchen Panel (Your original section updated to a responsive grid) -->
+    <section id="customerView" class="view-panel space-y-4">
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
+                <div>
+                    <h2 class="text-md font-bold text-slate-800">1. Select Nearby Kitchen (0% Markup)</h2>
+                    <p id="currentCoordsText" class="text-xs text-slate-400 mt-0.5">Requesting GPS permission to locate nearest kitchen hubs...</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="simulateGPSMove()" class="text-xs bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 px-2 py-1 rounded font-medium transition">🎲 Simulate Move</button>
+                    <button onclick="initializeCustomerGeoLocation()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded font-medium transition">📍 Refresh GPS</button>
+                </div>
+            </div>
+            
+            <!-- Dynamic target container for calculated sorted listings -->
+            <div id="locationRestaurantContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <p class="text-xs text-slate-400 animate-pulse text-center py-4 col-span-full">Awaiting GPS telemetry coordinate lock...</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 2. Real-Time Visual Tracker Panel (Hidden by default, reveals on checkout order placement) -->
+    <section id="trackingView" class="hidden">
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                <div>
+                    <h2 class="text-md font-bold text-slate-800">2. Active Courier Telemetry</h2>
+                    <p id="activeOrderText" class="text-xs text-slate-500"></p>
+                </div>
+                <button onclick="cancelTrackingSimulation()" class="text-xs text-slate-400 hover:text-rose-600 transition">Reset Tracker</button>
+            </div>
+
+            <!-- Dark Mode Map Simulation Box -->
+            <div class="relative bg-slate-900 h-40 rounded-xl overflow-hidden flex flex-col justify-between p-3 border border-slate-800">
+                <div class="absolute inset-0 opacity-5 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:12px_12px]"></div>
+                
+                <div class="relative z-10 flex justify-between items-center h-full max-w-lg mx-auto w-full px-4">
+                    <!-- Kitchen Node -->
+                    <div class="flex flex-col items-center text-center w-20">
+                        <div id="node-restaurant" class="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs transition-all">🏪</div>
+                        <span class="text-[10px] font-bold text-slate-300 truncate w-full mt-1" id="trackHubName">Kitchen</span>
+                    </div>
+
+                    <!-- Progress Bar Wireway -->
+                    <div class="flex-1 h-1 bg-slate-700 relative mx-2 rounded-full overflow-hidden">
+                        <div id="trackerProgressLine" class="absolute left-0 top-0 h-full w-0 bg-emerald-500 transition-all duration-300"></div>
+                        <div id="movingRiderIndicator" class="absolute top-1/2 -translate-y-1/2 -ml-2 left-0 text-sm transition-all duration-300">🛵</div>
+                    </div>
+
+                    <!-- Home Node -->
+                    <div class="flex flex-col items-center text-center w-20">
+                        <div id="node-customer" class="w-8 h-8 rounded-full bg-slate-700 text-slate-400 flex items-center justify-center font-bold text-xs transition-all">🏠</div>
+                        <span class="text-[10px] font-bold text-slate-300 mt-1">Your Door</span>
+                        <span id="trackDistanceBadge" class="text-[8px] text-slate-500">-- km</span>
+                    </div>
+                </div>
+
+                <!-- Ticker Banner Console -->
+                <div class="relative z-10 bg-slate-800 border border-slate-700 rounded-lg p-2 flex justify-between items-center text-[11px] text-slate-200">
+                    <span id="liveStatusConsole" class="truncate pr-2">System idle. Select a kitchen hub above to simulate delivery.</span>
+                    <span id="liveEtaTicker" class="text-emerald-400 font-mono font-bold whitespace-nowrap bg-slate-950 px-1.5 py-0.5 rounded">ETA: --m</span>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+   // Baseline fallbacks centered on Faridabad Sector 2 zone parameters
+let currentCustomerLat = 28.3400;
+let currentCustomerLon = 77.3300;
+let activeInterval = null;
+
+// Pure Haversine formula calculation logic
+function calculateHaversineDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371; // Earth's mean radius in kilometers
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+        Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c; 
+}
+
+// Render Engine: Computes real-time sorting and appends cards safely
+function renderRestaurantDashboard() {
+    const container = document.getElementById("locationRestaurantContainer");
+    if (!container) return;
+
+    const processedList = LAUNCH_RESTAURANTS.map(r => {
+        return { ...r, distance: calculateHaversineDistance(currentCustomerLat, currentCustomerLon, r.lat, r.lon) };
+    }).sort((a, b) => a.distance - b.distance);
+
+    container.innerHTML = "";
+
+    processedList.forEach(kitchen => {
+        const markupSavings = kitchen.appPrice - kitchen.basePrice;
+        const card = document.createElement("div");
+        card.className = "bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-3";
+        card.innerHTML = `
+            <div>
+                <div class="flex justify-between items-start gap-2">
+                    <div>
+                        <h3 class="font-bold text-sm text-slate-800">${kitchen.name}</h3>
+                        <p class="text-[11px] text-slate-500">📍 ${kitchen.area} • <span class="text-slate-700 font-semibold">${kitchen.distance.toFixed(2)} km away</span></p>
+                    </div>
+                    <span class="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">Save ₹${markupSavings}</span>
+                </div>
+                <div class="mt-2 bg-slate-50 p-2 rounded-lg border border-slate-100 text-xs">
+                    <div class="font-medium text-slate-700">${kitchen.item}</div>
+                    <div class="flex justify-between items-center mt-2 pt-1 border-t border-slate-200/60">
+                        <div>
+                            <span class="font-bold text-slate-900">₹${kitchen.basePrice}</span>
+                            <span class="text-slate-400 line-through text-[10px] ml-1">₹${kitchen.appPrice}</span>
+                        </div>
+                        <span class="text-[9px] text-emerald-600 font-bold bg-emerald-50 px-1.5 py-0.5 rounded">0% Fee Exchange</span>
+                    </div>
+                </div>
+            </div>
+            <button onclick="startDeliveryTracking('${escape(kitchen.name)}', ${kitchen.distance})" class="w-full bg-slate-900 hover:bg-emerald-600 text-white font-medium text-xs py-2 rounded-lg transition duration-200">
+                Order Direct & Track Rider
+            </button>
+        `;
+        container.appendChild(card);
+    });
+}
+
+// Telemetry Tracker Loop
+function startDeliveryTracking(escapedName, distanceKm) {
+    const kitchenName = unescape(escapedName);
+    const trackingView = document.getElementById("trackingView");
+    trackingView.classList.remove("hidden");
+    trackingView.scrollIntoView({ behavior: 'smooth' });
+
+    document.getElementById("activeOrderText").innerText = `Tracking order from ${kitchenName}`;
+    document.getElementById("trackHubName").innerText = kitchenName;
+    document.getElementById("trackDistanceBadge").innerText = `${distanceKm.toFixed(2)} km`;
+
+    const progressLine = document.getElementById("trackerProgressLine");
+    const riderIndicator = document.getElementById("movingRiderIndicator");
+    const nodeRest = document.getElementById("node-restaurant");
+    const nodeCust = document.getElementById("node-customer");
+    const statusConsole = document.getElementById("liveStatusConsole");
+    const etaTicker = document.getElementById("liveEtaTicker");
+
+    if (activeInterval) clearInterval(activeInterval);
+    let step = 0;
+
+    activeInterval = setInterval(() => {
+        step += 1;
+        progressLine.style.width = `${step}%`;
+        riderIndicator.style.left = `${step}%`;
+
+        let remDist = (distanceKm * (1 - (step / 100))).toFixed(2);
+        let remEta = Math.ceil((15 * (1 - (step / 100))));
+
+        if (step < 25) {
+            statusConsole.innerText = `🛵 Dispatching rider to ${kitchenName} hub...`;
+            etaTicker.innerText = `ETA: ${remEta + 2}m`;
+        } else if (step === 25) {
+            nodeRest.classList.add("ring-4", "ring-amber-400");
+            statusConsole.innerText = "📦 Food loaded! Rider verifying digital signature seal.";
+        } else if (step > 25 && step < 90) {
+            statusConsole.innerText = `🛣️ Out for delivery. Distance left: ${remDist} km`;
+            etaTicker.innerText = `ETA: ${remEta}m`;
+        } else if (step >= 90 && step < 100) {
+            nodeCust.classList.add("animate-bounce");
+            statusConsole.innerText = "🔔 Courier approaching your matching doorstep node!";
+            etaTicker.innerText = "ETA: 1m";
+        } else if (step >= 100) {
+            clearInterval(activeInterval);
+            nodeCust.classList.remove("animate-bounce", "bg-slate-700");
+            nodeCust.classList.add("bg-emerald-600");
+            statusConsole.innerText = "🎉 Food delivered with zero intermediate pricing markups!";
+            etaTicker.innerText = "ARRIVED";
+        }
+    }, 150);
+}
+
+function cancelTrackingSimulation() {
+    if (activeInterval) clearInterval(activeInterval);
+    document.getElementById("trackingView").classList.add("hidden");
+    document.getElementById("trackerProgressLine").style.width = "0%";
+    document.getElementById("movingRiderIndicator").style.left = "0%";
+}
+
+function initializeCustomerGeoLocation() {
+    if (navigator.geolocation) {
+        document.getElementById("currentCoordsText").innerText = "Connecting to device sensors...";
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                currentCustomerLat = pos.coords.latitude;
+                currentCustomerLon = pos.coords.longitude;
+                document.getElementById("currentCoordsText").innerText = `✔️ Hardware Connected GPS Location Lock Verified`;
+                renderRestaurantDashboard();
+            },
+            () => {
+                document.getElementById("currentCoordsText").innerText = "⚠️ Precision GPS denied. Running on zone simulation baselines.";
+                renderRestaurantDashboard();
+            }
+        );
+    }
+}
+
+function simulateGPSMove() {
+    currentCustomerLat += (Math.random() - 0.5) * 0.012;
+    currentCustomerLon += (Math.random() - 0.5) * 0.012;
+    document.getElementById("currentCoordsText").innerText = `🎲 Simulated coordinate offset applied.`;
+    renderRestaurantDashboard();
+}
+
+// Initial draw execution loop hook
+window.addEventListener("DOMContentLoaded", () => {
+    renderRestaurantDashboard();
+});
+ <script>
         const LAUNCH_RESTAURANTS = [
             { name: "Lala Ji Family Restaurant", item: "Special Handi Chicken Biryani", basePrice: 150, appPrice: 220, vpa: "lalajibiryani@okaxis", lat: 28.3411, lon: 77.3312, area: "HUDA Market, Sec 2" },
             { name: "JEETU 777 RESTAURANT", item: "Premium Special Veg Lunch Thali", basePrice: 120, appPrice: 180, vpa: "jeetu777@oksbi", lat: 28.3425, lon: 77.3325, area: "HUDA Market, Sec 2" },
