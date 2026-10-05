@@ -199,8 +199,8 @@
         // --- SUPABASE CONFIGURATION ---
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.38.4/+esm';
 
-        const SUPABASE_URL = "https://your-project.supabase.co";
-        const SUPABASE_KEY = "your-anon-key";
+        const SUPABASE_URL = "https://xmjaikatrakvtvgrwvka.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_Q2Z0rdOFCICVv6TY789JzQ_OMZqsnBC";
 
         let supabaseClient;
         try {
@@ -305,9 +305,7 @@
                 const radiusKm = 5;
                 const { data, error } = await supabaseClient
                     .from("restaurants")
-                    .select("id, name, latitude, longitude, cuisine_type, delivery_time, rating")
-                    .not("latitude", "is", null)
-                    .not("longitude", "is", null);
+                    .select("id, name, latitude, longitude, cuisine_type, delivery_time, rating");
 
                 if (error) throw error;
 
@@ -359,9 +357,7 @@
                 const { data, error } = await supabaseClient
                     .from("riders")
                     .select("id, name, latitude, longitude, rating, vehicle_type, current_orders")
-                    .eq("is_active", true)
-                    .not("latitude", "is", null)
-                    .not("longitude", "is", null);
+                    .eq("is_active", true);
 
                 if (error) throw error;
 
@@ -413,9 +409,7 @@
                 const { data, error } = await supabaseClient
                     .from("orders")
                     .select("id, customer_name, pickup_lat, pickup_lng, delivery_address, payout, status")
-                    .eq("status", "waiting_rider")
-                    .not("pickup_lat", "is", null)
-                    .not("pickup_lng", "is", null);
+                    .eq("status", "waiting_rider");
 
                 if (error) throw error;
 
@@ -468,7 +462,6 @@
                 const { data, error } = await supabaseClient
                     .from("orders")
                     .select("id, customer_name, delivery_lat, delivery_lng, total_amount, items, status")
-                    .eq("restaurant_id", "YOUR_RESTAURANT_ID") // Update with actual restaurant ID
                     .eq("status", "confirmed")
                     .order("created_at", { ascending: false })
                     .limit(10);
@@ -501,7 +494,7 @@
                         </div>
                         <div class="mt-2 flex justify-between text-[10px] text-slate-500">
                             <span>📍 ${formatDistance(order.distanceKm)}</span>
-                            <span class="text-blue-600 font-bold cursor-pointer hover:text-blue-700">Preparing →</span>
+                            <span class="text-blue-600 font-bold">Preparing →</span>
                         </div>
                     </div>
                 `).join("");
@@ -511,7 +504,7 @@
             }
         };
 
-        window.refreshNearbyData = async function(type) {
+        window.refreshNearbyData = function(type) {
             if (type === "restaurants") window.fetchNearbyRestaurants();
             if (type === "riders") window.fetchNearbyRiders();
             if (type === "jobs") window.fetchRiderJobs();
@@ -523,9 +516,7 @@
             if (roleSelector) roleSelector.value = role;
 
             const panels = document.querySelectorAll(".view-panel");
-            panels.forEach((panel) => {
-                panel.classList.add("hidden");
-            });
+            panels.forEach((panel) => panel.classList.add("hidden"));
 
             if (role === "customer") {
                 document.getElementById("customerView")?.classList.remove("hidden");
@@ -546,7 +537,7 @@
         };
 
         // --- INITIALIZATION ---
-        async function initializeApp() {
+        function initializeApp() {
             updateLocationUI();
             window.switchRole(document.getElementById("roleSelector")?.value || "customer");
 
