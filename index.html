@@ -6,6 +6,8 @@
     <title>DirectBite | 0% Commission Food Exchange</title>
     <!-- Tailwind CSS Engine -->
     <script src="https://tailwindcss.com"></script>
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.38.4/dist/module/index.js" type="module"></script>
     <link rel="manifest" href="manifest.json">
     <script>
         if ("serviceWorker" in navigator) {
@@ -63,6 +65,20 @@
 
         <!-- CUSTOMER OVERLAY PANEL -->
         <section id="customerView" class="view-panel space-y-4">
+            <!-- LOCATION CARD -->
+            <div class="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white p-4 rounded-xl shadow-md border border-emerald-400">
+                <div class="flex justify-between items-center gap-3">
+                    <div>
+                        <p class="text-xs opacity-90 mb-1">📍 Current Location</p>
+                        <p class="text-sm font-bold" id="locationDisplay">Detecting location...</p>
+                        <p class="text-[10px] opacity-75 mt-1" id="locationCoords"></p>
+                    </div>
+                    <button onclick="requestUserLocation()" class="bg-white text-emerald-700 font-bold py-2 px-4 rounded-lg text-xs shadow hover:bg-emerald-50 transition flex items-center gap-2">
+                        📍 Use My Location
+                    </button>
+                </div>
+            </div>
+
             <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
                 <h2 class="text-md font-bold mb-2">1. Select Item (Dine-In Pricing)</h2>
                 <div class="p-3 border border-slate-100 rounded-lg flex justify-between items-center bg-slate-50">
@@ -75,19 +91,23 @@
             </div>
 
             <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-                <div class="flex justify-between items-center mb-2">
+                <div class="flex justify-between items-center mb-3">
                     <h2 class="text-md font-bold">Nearby Restaurants</h2>
-                    <span id="locationStatus" class="text-[10px] font-semibold text-slate-500">Detecting location...</span>
+                    <button onclick="refreshNearbyData('restaurants')" class="text-[10px] font-semibold text-emerald-600 hover:text-emerald-700 transition">🔄 Refresh</button>
                 </div>
-                <div id="nearbyRestaurantsList" class="space-y-2"></div>
+                <div id="nearbyRestaurantsList" class="space-y-2">
+                    <p class="text-xs text-slate-400 text-center py-4">Loading restaurants...</p>
+                </div>
             </div>
 
             <div id="customerBiddingPanel" class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 hidden">
-                <div class="flex justify-between items-center mb-2">
+                <div class="flex justify-between items-center mb-3">
                     <h2 class="text-md font-bold">2. Live Local Rider Bids</h2>
-                    <span class="animate-pulse bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full">Waiting for drivers...</span>
+                    <button onclick="refreshNearbyData('riders')" class="text-[10px] font-semibold text-emerald-600 hover:text-emerald-700 transition">🔄 Refresh</button>
                 </div>
-                <div id="liveBidsList" class="space-y-2"></div>
+                <div id="liveBidsList" class="space-y-2">
+                    <span class="animate-pulse bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full inline-block">Waiting for drivers...</span>
+                </div>
             </div>
 
             <div id="checkoutPanel" class="bg-white p-4 rounded-xl border border-emerald-200 bg-emerald-50/20 hidden">
@@ -103,17 +123,51 @@
 
         <!-- RIDER BID PANEL -->
         <section id="riderView" class="view-panel space-y-4 hidden">
+            <!-- LOCATION CARD FOR RIDER -->
+            <div class="bg-gradient-to-r from-amber-500 to-orange-600 text-white p-4 rounded-xl shadow-md border border-amber-400">
+                <div class="flex justify-between items-center gap-3">
+                    <div>
+                        <p class="text-xs opacity-90 mb-1">📍 Your Location</p>
+                        <p class="text-sm font-bold" id="riderLocationDisplay">Detecting location...</p>
+                        <p class="text-[10px] opacity-75 mt-1" id="riderLocationCoords"></p>
+                    </div>
+                    <button onclick="requestUserLocation()" class="bg-white text-orange-700 font-bold py-2 px-4 rounded-lg text-xs shadow hover:bg-orange-50 transition flex items-center gap-2">
+                        📍 Update Location
+                    </button>
+                </div>
+            </div>
+
             <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-                <h2 class="text-md font-bold mb-2">Active Jobs Seeking Bids</h2>
-                <div id="riderJobsList" class="text-xs text-slate-400 text-center py-4">No requests found...</div>
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="text-md font-bold">Active Jobs Seeking Bids</h2>
+                    <button onclick="refreshNearbyData('jobs')" class="text-[10px] font-semibold text-emerald-600 hover:text-emerald-700 transition">🔄 Refresh</button>
+                </div>
+                <div id="riderJobsList" class="text-xs text-slate-400 text-center py-4">Loading jobs...</div>
             </div>
         </section>
 
         <!-- RESTAURANT DASHBOARD -->
         <section id="restaurantView" class="view-panel space-y-4 hidden">
+            <!-- LOCATION CARD FOR RESTAURANT -->
+            <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 rounded-xl shadow-md border border-blue-400">
+                <div class="flex justify-between items-center gap-3">
+                    <div>
+                        <p class="text-xs opacity-90 mb-1">🏪 Restaurant Location</p>
+                        <p class="text-sm font-bold" id="restaurantLocationDisplay">Detecting location...</p>
+                        <p class="text-[10px] opacity-75 mt-1" id="restaurantLocationCoords"></p>
+                    </div>
+                    <button onclick="requestUserLocation()" class="bg-white text-blue-700 font-bold py-2 px-4 rounded-lg text-xs shadow hover:bg-blue-50 transition flex items-center gap-2">
+                        📍 Set Location
+                    </button>
+                </div>
+            </div>
+
             <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-                <h2 class="text-md font-bold mb-2">Incoming Direct Orders</h2>
-                <div id="restaurantOrdersList" class="text-xs text-slate-400 text-center py-4">Waiting for customer checkouts...</div>
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="text-md font-bold">Incoming Direct Orders</h2>
+                    <button onclick="refreshNearbyData('orders')" class="text-[10px] font-semibold text-emerald-600 hover:text-emerald-700 transition">🔄 Refresh</button>
+                </div>
+                <div id="restaurantOrdersList" class="text-xs text-slate-400 text-center py-4">Loading orders...</div>
             </div>
         </section>
 
@@ -141,53 +195,26 @@
     </main>
 
     <!-- CORE SYSTEM BACKEND INTEGRATION ENGINE -->
-    <script>
-        // --- PROD CONFIGURATION LAYER ---
-        const SUPABASE_URL = "https://supabase.co";
-        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.your-key-here";
+    <script type="module">
+        // --- SUPABASE CONFIGURATION ---
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.38.4/+esm';
 
-        const supabase = {
-            createClient: (url, key) => ({
-                from: (table) => ({
-                    select: () => Promise.resolve({ data: [], error: null }),
-                    insert: (data) => Promise.resolve({ data: data, error: null }),
-                    update: (data) => ({ match: () => Promise.resolve({ data: data, error: null }) })
-                })
-            })
-        };
-        const dbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const SUPABASE_URL = "https://your-project.supabase.co";
+        const SUPABASE_KEY = "your-anon-key";
+
+        let supabaseClient;
+        try {
+            supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
+        } catch (e) {
+            console.log("Supabase setup error:", e);
+        }
 
         // --- APP STATE CONFIGURATION ---
-        let currentOrder = { food_cost: 0, restaurant_name: "", restaurant_vpa: "", selected_fee: 0 };
-        let currentLocation = { lat: 12.9716, lng: 77.5946, label: "Bengaluru" };
+        window.currentOrder = { food_cost: 0, restaurant_name: "", restaurant_vpa: "", selected_fee: 0 };
+        window.currentLocation = { lat: 12.9716, lng: 77.5946, label: "Bengaluru" };
+        window.isLocationActual = false;
 
-        const nearbyRestaurantsData = [
-            { name: "Kishan Bakes", lat: 12.9725, lng: 77.5928, eta: "6 min", type: "Biryani" },
-            { name: "Green Bowl Cafe", lat: 12.9698, lng: 77.5987, eta: "11 min", type: "Healthy" },
-            { name: "Super Wok", lat: 12.9752, lng: 77.5922, eta: "9 min", type: "Chinese" },
-            { name: "Sultan Spices", lat: 12.9681, lng: 77.5889, eta: "14 min", type: "North Indian" },
-            { name: "Curry Corner", lat: 12.9764, lng: 77.6063, eta: "17 min", type: "South Indian" }
-        ];
-
-        const nearbyRidersData = [
-            { name: "Ravi K.", lat: 12.9734, lng: 77.5961, rating: 4.8, eta: "4 min", bid: 35 },
-            { name: "Shiva M.", lat: 12.9688, lng: 77.5979, rating: 4.6, eta: "6 min", bid: 40 },
-            { name: "Anoop P.", lat: 12.9709, lng: 77.5909, rating: 4.9, eta: "8 min", bid: 45 },
-            { name: "Mala S.", lat: 12.9767, lng: 77.6005, rating: 4.7, eta: "10 min", bid: 50 }
-        ];
-
-        const nearbyJobsData = [
-            { customer: "Ananya", lat: 12.9719, lng: 77.5924, item: "Biryani Combo", distance: "1.1 km", payout: "₹90" },
-            { customer: "Karan", lat: 12.9683, lng: 77.5982, item: "Pizza Meal", distance: "1.7 km", payout: "₹120" },
-            { customer: "Neha", lat: 12.9745, lng: 77.6068, item: "Wrap & Shake", distance: "2.4 km", payout: "₹110" }
-        ];
-
-        const nearbyOrdersData = [
-            { customer: "Ishita", lat: 12.9721, lng: 77.5938, item: "Chicken Thali", amount: "₹230", distance: "0.9 km" },
-            { customer: "Rohit", lat: 12.9692, lng: 77.6005, item: "Paneer Bowl", amount: "₹180", distance: "1.4 km" },
-            { customer: "Mehak", lat: 12.9771, lng: 77.5994, item: "Momo Combo", amount: "₹210", distance: "2.1 km" }
-        ];
-
+        // --- HELPER FUNCTIONS ---
         function toRadians(value) {
             return (value * Math.PI) / 180;
         }
@@ -209,157 +236,289 @@
             return `${km.toFixed(1)} km`;
         }
 
-        function detectUserLocation() {
-            if (!navigator.geolocation) {
-                return Promise.resolve(currentLocation);
+        function updateLocationUI() {
+            const coords = `${window.currentLocation.lat.toFixed(4)}, ${window.currentLocation.lng.toFixed(4)}`;
+            
+            const customerDisplay = document.getElementById("locationDisplay");
+            if (customerDisplay) {
+                customerDisplay.textContent = window.currentLocation.label;
+                document.getElementById("locationCoords").textContent = coords;
             }
 
-            return new Promise((resolve) => {
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        currentLocation = {
-                            lat: position.coords.latitude,
-                            lng: position.coords.longitude,
-                            label: "Your location"
-                        };
-                        resolve(currentLocation);
-                    },
-                    () => {
-                        resolve(currentLocation);
-                    },
-                    { enableHighAccuracy: true, timeout: 5000, maximumAge: 300000 }
-                );
-            });
+            const riderDisplay = document.getElementById("riderLocationDisplay");
+            if (riderDisplay) {
+                riderDisplay.textContent = window.currentLocation.label;
+                document.getElementById("riderLocationCoords").textContent = coords;
+            }
+
+            const restaurantDisplay = document.getElementById("restaurantLocationDisplay");
+            if (restaurantDisplay) {
+                restaurantDisplay.textContent = window.currentLocation.label;
+                document.getElementById("restaurantLocationCoords").textContent = coords;
+            }
         }
 
-        function renderNearbyRestaurants() {
+        // --- LOCATION REQUEST ---
+        window.requestUserLocation = async function() {
+            if (!navigator.geolocation) {
+                alert("Geolocation not supported");
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    window.currentLocation = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude,
+                        label: "Your location"
+                    };
+                    window.isLocationActual = true;
+                    updateLocationUI();
+                    
+                    // Refresh all nearby data
+                    const role = document.getElementById("roleSelector")?.value || "customer";
+                    if (role === "customer") {
+                        window.fetchNearbyRestaurants();
+                        window.fetchNearbyRiders();
+                    } else if (role === "rider") {
+                        window.fetchRiderJobs();
+                    } else if (role === "restaurant") {
+                        window.fetchRestaurantOrders();
+                    }
+                },
+                () => {
+                    alert("Unable to get location. Using default location.");
+                }
+            );
+        };
+
+        // --- SUPABASE DATA FETCHING ---
+        window.fetchNearbyRestaurants = async function() {
             const list = document.getElementById("nearbyRestaurantsList");
             if (!list) return;
 
-            const restaurants = nearbyRestaurantsData
-                .map((restaurant) => ({
-                    ...restaurant,
-                    distance: calculateDistanceKm(currentLocation, restaurant)
-                }))
-                .sort((a, b) => a.distance - b.distance)
-                .slice(0, 4);
+            list.innerHTML = '<p class="text-xs text-slate-400 text-center py-4">Loading restaurants...</p>';
 
-            if (!restaurants.length) {
-                list.innerHTML = '<p class="text-xs text-slate-400">No restaurants nearby yet.</p>';
-                return;
-            }
+            try {
+                if (!supabaseClient) throw new Error("Supabase not configured");
 
-            list.innerHTML = restaurants.map((restaurant) => `
-                <div class="p-2.5 border border-slate-200 rounded-lg bg-slate-50">
-                    <div class="flex justify-between items-center gap-2">
-                        <div>
-                            <p class="font-bold text-sm text-slate-800">${restaurant.name}</p>
-                            <p class="text-[10px] text-slate-500">${restaurant.type} • ${restaurant.eta}</p>
+                const radiusKm = 5;
+                const { data, error } = await supabaseClient
+                    .from("restaurants")
+                    .select("id, name, latitude, longitude, cuisine_type, delivery_time, rating")
+                    .not("latitude", "is", null)
+                    .not("longitude", "is", null);
+
+                if (error) throw error;
+
+                const restaurants = (data || [])
+                    .map((restaurant) => ({
+                        ...restaurant,
+                        distance: calculateDistanceKm(
+                            window.currentLocation,
+                            { lat: restaurant.latitude, lng: restaurant.longitude }
+                        )
+                    }))
+                    .filter((r) => r.distance <= radiusKm)
+                    .sort((a, b) => a.distance - b.distance)
+                    .slice(0, 5);
+
+                if (!restaurants.length) {
+                    list.innerHTML = '<p class="text-xs text-slate-400">No restaurants nearby yet.</p>';
+                    return;
+                }
+
+                list.innerHTML = restaurants.map((restaurant) => `
+                    <div class="p-3 border border-slate-200 rounded-lg bg-slate-50 hover:bg-emerald-50 transition cursor-pointer">
+                        <div class="flex justify-between items-center gap-2">
+                            <div>
+                                <p class="font-bold text-sm text-slate-800">${restaurant.name}</p>
+                                <p class="text-[10px] text-slate-500">⭐ ${(restaurant.rating || 4.5).toFixed(1)} • ${restaurant.cuisine_type || "Multi"}</p>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-1 rounded-full block mb-1">${formatDistance(restaurant.distance)}</span>
+                                <p class="text-[10px] text-slate-500">${restaurant.delivery_time || "15-20"} min</p>
+                            </div>
                         </div>
-                        <span class="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-1 rounded-full">${formatDistance(restaurant.distance)}</span>
                     </div>
-                </div>
-            `).join("");
-        }
+                `).join("");
+            } catch (error) {
+                console.error("Error fetching restaurants:", error);
+                list.innerHTML = '<p class="text-xs text-red-500">Error loading restaurants. Check Supabase config.</p>';
+            }
+        };
 
-        function renderNearbyRiders() {
+        window.fetchNearbyRiders = async function() {
             const list = document.getElementById("liveBidsList");
             if (!list) return;
 
-            const riders = nearbyRidersData
-                .map((rider) => ({
-                    ...rider,
-                    distance: calculateDistanceKm(currentLocation, rider)
-                }))
-                .sort((a, b) => a.distance - b.distance)
-                .slice(0, 4);
+            try {
+                if (!supabaseClient) throw new Error("Supabase not configured");
 
-            if (!riders.length) {
-                list.innerHTML = '<p class="text-xs text-slate-400">No riders nearby.</p>';
-                return;
+                const radiusKm = 3;
+                const { data, error } = await supabaseClient
+                    .from("riders")
+                    .select("id, name, latitude, longitude, rating, vehicle_type, current_orders")
+                    .eq("is_active", true)
+                    .not("latitude", "is", null)
+                    .not("longitude", "is", null);
+
+                if (error) throw error;
+
+                const riders = (data || [])
+                    .map((rider) => ({
+                        ...rider,
+                        distance: calculateDistanceKm(
+                            window.currentLocation,
+                            { lat: rider.latitude, lng: rider.longitude }
+                        )
+                    }))
+                    .filter((r) => r.distance <= radiusKm)
+                    .sort((a, b) => a.distance - b.distance)
+                    .slice(0, 4);
+
+                if (!riders.length) {
+                    list.innerHTML = '<p class="text-xs text-slate-400">No riders nearby.</p>';
+                    return;
+                }
+
+                list.innerHTML = riders.map((rider) => `
+                    <div class="p-3 border border-amber-100 rounded-lg bg-amber-50/40 flex justify-between items-center gap-2">
+                        <div>
+                            <p class="font-bold text-sm text-slate-800">${rider.name}</p>
+                            <p class="text-[10px] text-slate-500">⭐ ${(rider.rating || 4.5).toFixed(1)} • ${rider.vehicle_type || "2Wheeler"}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-black text-emerald-600 text-xs">ETA ${formatDistance(rider.distance)}</p>
+                            <p class="text-[10px] text-slate-500">${rider.current_orders || 1} active</p>
+                        </div>
+                    </div>
+                `).join("");
+            } catch (error) {
+                console.error("Error fetching riders:", error);
+                list.innerHTML = '<p class="text-xs text-slate-400">No riders available.</p>';
             }
+        };
 
-            list.innerHTML = riders.map((rider) => `
-                <div class="p-2.5 border border-amber-100 rounded-lg bg-amber-50/40 flex justify-between items-center gap-2">
-                    <div>
-                        <p class="font-bold text-sm text-slate-800">${rider.name}</p>
-                        <p class="text-[10px] text-slate-500">⭐ ${rider.rating} • ${rider.eta}</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="font-black text-emerald-600 text-sm">₹${rider.bid}</p>
-                        <p class="text-[10px] text-slate-500">${formatDistance(rider.distance)}</p>
-                    </div>
-                </div>
-            `).join("");
-        }
-
-        function renderRiderJobs() {
+        window.fetchRiderJobs = async function() {
             const list = document.getElementById("riderJobsList");
             if (!list) return;
 
-            const jobs = nearbyJobsData
-                .map((job) => ({
-                    ...job,
-                    distanceKm: calculateDistanceKm(currentLocation, { lat: job.lat, lng: job.lng })
-                }))
-                .sort((a, b) => a.distanceKm - b.distanceKm);
+            list.innerHTML = '<p class="text-xs text-slate-400 text-center py-4">Loading jobs...</p>';
 
-            if (!jobs.length) {
-                list.innerHTML = '<div class="text-xs text-slate-400 text-center py-4">No requests found...</div>';
-                return;
-            }
+            try {
+                if (!supabaseClient) throw new Error("Supabase not configured");
 
-            list.innerHTML = jobs.map((job) => `
-                <div class="p-3 border border-slate-200 rounded-lg bg-slate-50">
-                    <div class="flex justify-between items-center gap-2">
-                        <div>
-                            <p class="font-bold text-sm text-slate-800">${job.customer}</p>
-                            <p class="text-[10px] text-slate-500">${job.item}</p>
+                const radiusKm = 5;
+                const { data, error } = await supabaseClient
+                    .from("orders")
+                    .select("id, customer_name, pickup_lat, pickup_lng, delivery_address, payout, status")
+                    .eq("status", "waiting_rider")
+                    .not("pickup_lat", "is", null)
+                    .not("pickup_lng", "is", null);
+
+                if (error) throw error;
+
+                const jobs = (data || [])
+                    .map((job) => ({
+                        ...job,
+                        distanceKm: calculateDistanceKm(
+                            window.currentLocation,
+                            { lat: job.pickup_lat, lng: job.pickup_lng }
+                        )
+                    }))
+                    .filter((j) => j.distanceKm <= radiusKm)
+                    .sort((a, b) => a.distanceKm - b.distanceKm);
+
+                if (!jobs.length) {
+                    list.innerHTML = '<div class="text-xs text-slate-400 text-center py-4">No requests found...</div>';
+                    return;
+                }
+
+                list.innerHTML = jobs.map((job) => `
+                    <div class="p-3 border border-slate-200 rounded-lg bg-slate-50 hover:bg-emerald-50 transition cursor-pointer">
+                        <div class="flex justify-between items-center gap-2">
+                            <div>
+                                <p class="font-bold text-sm text-slate-800">${job.customer_name}</p>
+                                <p class="text-[10px] text-slate-500">${job.delivery_address || "Delivery pending"}</p>
+                            </div>
+                            <span class="text-[10px] font-bold bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full">₹${job.payout || "TBD"}</span>
                         </div>
-                        <span class="text-[10px] font-bold bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full">${job.payout}</span>
+                        <div class="mt-2 flex justify-between text-[10px] text-slate-500">
+                            <span>📍 ${formatDistance(job.distanceKm)}</span>
+                            <span class="text-emerald-600 font-bold cursor-pointer hover:text-emerald-700">Accept Bid →</span>
+                        </div>
                     </div>
-                    <div class="mt-2 flex justify-between text-[10px] text-slate-500">
-                        <span>Pickup: ${formatDistance(job.distanceKm)}</span>
-                        <span>Bid now</span>
-                    </div>
-                </div>
-            `).join("");
-        }
+                `).join("");
+            } catch (error) {
+                console.error("Error fetching jobs:", error);
+                list.innerHTML = '<div class="text-xs text-slate-400 text-center py-4">Check Supabase config</div>';
+            }
+        };
 
-        function renderRestaurantOrders() {
+        window.fetchRestaurantOrders = async function() {
             const list = document.getElementById("restaurantOrdersList");
             if (!list) return;
 
-            const orders = nearbyOrdersData
-                .map((order) => ({
-                    ...order,
-                    distanceKm: calculateDistanceKm(currentLocation, { lat: order.lat, lng: order.lng })
-                }))
-                .sort((a, b) => a.distanceKm - b.distanceKm);
+            list.innerHTML = '<p class="text-xs text-slate-400 text-center py-4">Loading orders...</p>';
 
-            if (!orders.length) {
-                list.innerHTML = '<div class="text-xs text-slate-400 text-center py-4">Waiting for customer checkouts...</div>';
-                return;
-            }
+            try {
+                if (!supabaseClient) throw new Error("Supabase not configured");
 
-            list.innerHTML = orders.map((order) => `
-                <div class="p-3 border border-slate-200 rounded-lg bg-slate-50">
-                    <div class="flex justify-between items-center gap-2">
-                        <div>
-                            <p class="font-bold text-sm text-slate-800">${order.customer}</p>
-                            <p class="text-[10px] text-slate-500">${order.item}</p>
+                const { data, error } = await supabaseClient
+                    .from("orders")
+                    .select("id, customer_name, delivery_lat, delivery_lng, total_amount, items, status")
+                    .eq("restaurant_id", "YOUR_RESTAURANT_ID") // Update with actual restaurant ID
+                    .eq("status", "confirmed")
+                    .order("created_at", { ascending: false })
+                    .limit(10);
+
+                if (error) throw error;
+
+                const orders = (data || [])
+                    .map((order) => ({
+                        ...order,
+                        distanceKm: calculateDistanceKm(
+                            window.currentLocation,
+                            { lat: order.delivery_lat, lng: order.delivery_lng }
+                        )
+                    }))
+                    .sort((a, b) => a.distanceKm - b.distanceKm);
+
+                if (!orders.length) {
+                    list.innerHTML = '<div class="text-xs text-slate-400 text-center py-4">Waiting for customer checkouts...</div>';
+                    return;
+                }
+
+                list.innerHTML = orders.map((order) => `
+                    <div class="p-3 border border-slate-200 rounded-lg bg-slate-50 hover:bg-blue-50 transition cursor-pointer">
+                        <div class="flex justify-between items-center gap-2">
+                            <div>
+                                <p class="font-bold text-sm text-slate-800">${order.customer_name}</p>
+                                <p class="text-[10px] text-slate-500">${order.items ? order.items.slice(0, 2).join(", ") : "Order"}</p>
+                            </div>
+                            <span class="text-[10px] font-bold bg-blue-100 text-blue-700 px-2 py-1 rounded-full">₹${order.total_amount || 0}</span>
                         </div>
-                        <span class="text-[10px] font-bold bg-blue-100 text-blue-700 px-2 py-1 rounded-full">${order.amount}</span>
+                        <div class="mt-2 flex justify-between text-[10px] text-slate-500">
+                            <span>📍 ${formatDistance(order.distanceKm)}</span>
+                            <span class="text-blue-600 font-bold cursor-pointer hover:text-blue-700">Preparing →</span>
+                        </div>
                     </div>
-                    <div class="mt-2 flex justify-between text-[10px] text-slate-500">
-                        <span>${formatDistance(order.distanceKm)}</span>
-                        <span>New order</span>
-                    </div>
-                </div>
-            `).join("");
-        }
+                `).join("");
+            } catch (error) {
+                console.error("Error fetching orders:", error);
+                list.innerHTML = '<div class="text-xs text-slate-400 text-center py-4">Check configuration</div>';
+            }
+        };
 
-        function switchRole(role) {
+        window.refreshNearbyData = async function(type) {
+            if (type === "restaurants") window.fetchNearbyRestaurants();
+            if (type === "riders") window.fetchNearbyRiders();
+            if (type === "jobs") window.fetchRiderJobs();
+            if (type === "orders") window.fetchRestaurantOrders();
+        };
+
+        window.switchRole = function(role) {
             const roleSelector = document.getElementById("roleSelector");
             if (roleSelector) roleSelector.value = role;
 
@@ -370,38 +529,42 @@
 
             if (role === "customer") {
                 document.getElementById("customerView")?.classList.remove("hidden");
-                renderNearbyRestaurants();
-                renderNearbyRiders();
+                window.fetchNearbyRestaurants();
+                window.fetchNearbyRiders();
                 document.getElementById("customerBiddingPanel")?.classList.remove("hidden");
             }
 
             if (role === "rider") {
                 document.getElementById("riderView")?.classList.remove("hidden");
-                renderRiderJobs();
+                window.fetchRiderJobs();
             }
 
             if (role === "restaurant") {
                 document.getElementById("restaurantView")?.classList.remove("hidden");
-                renderRestaurantOrders();
+                window.fetchRestaurantOrders();
             }
+        };
+
+        // --- INITIALIZATION ---
+        async function initializeApp() {
+            updateLocationUI();
+            window.switchRole(document.getElementById("roleSelector")?.value || "customer");
+
+            // Auto-refresh every 15 seconds
+            setInterval(() => {
+                const role = document.getElementById("roleSelector")?.value;
+                if (role === "customer") {
+                    window.fetchNearbyRestaurants();
+                    window.fetchNearbyRiders();
+                } else if (role === "rider") {
+                    window.fetchRiderJobs();
+                } else if (role === "restaurant") {
+                    window.fetchRestaurantOrders();
+                }
+            }, 15000);
         }
 
-        async function initializeLocationAwareViews() {
-            const locationStatus = document.getElementById("locationStatus");
-            await detectUserLocation();
-
-            if (locationStatus) {
-                locationStatus.textContent = `Near ${currentLocation.label}`;
-            }
-
-            renderNearbyRestaurants();
-            renderNearbyRiders();
-            renderRiderJobs();
-            renderRestaurantOrders();
-            switchRole(document.getElementById("roleSelector")?.value || "customer");
-        }
-
-        window.addEventListener("DOMContentLoaded", initializeLocationAwareViews);
+        window.addEventListener("DOMContentLoaded", initializeApp);
     </script>
 </body>
 </html>
