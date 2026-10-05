@@ -2,58 +2,83 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#059669">
     <title>DirectBite | 0% Commission Food Exchange</title>
     <!-- Tailwind CSS Engine -->
-    <script src="https://tailwindcss.com"></script>
-    <!-- Supabase JS Client -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.38.4/dist/module/index.js" type="module"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="manifest" href="manifest.json">
+    <style>
+        * {
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+        }
+        body {
+            overscroll-behavior: none;
+        }
+        .safe-area {
+            padding-top: max(1rem, env(safe-area-inset-top));
+            padding-bottom: max(1rem, env(safe-area-inset-bottom));
+            padding-left: max(1rem, env(safe-area-inset-left));
+            padding-right: max(1rem, env(safe-area-inset-right));
+        }
+        .mobile-button {
+            min-height: 44px;
+            padding: 12px 16px;
+        }
+        @media (max-width: 640px) {
+            .text-md { font-size: 0.95rem !important; }
+            main {
+                padding: 12px !important;
+            }
+        }
+    </style>
     <script>
         if ("serviceWorker" in navigator) {
             window.addEventListener("load", () => {
                 navigator.serviceWorker.register("sw.js")
-               navigator.serviceWorker.register("./sw.js")
-                    .then(r => console.log("Mobile Engine Active!"))
-                    .catch(e => console.log("Engine Error", e));
+                    .then(r => console.log("✅ Service Worker Active!"))
+                    .catch(e => console.log("Service Worker setup skipped"));
             });
         }
     </script>
 </head>
-<body class="bg-slate-50 text-slate-900 font-sans pb-12">
+<body class="bg-slate-50 text-slate-900 font-sans pb-24">
 
     <!-- NAVIGATION HEADER -->
-    <header class="bg-emerald-600 text-white shadow-md p-4 sticky top-0 z-50">
-        <div class="max-w-4xl mx-auto flex justify-between items-center">
-            <h1 class="text-xl font-bold tracking-tight">🚀 DirectBite</h1>
-            <select id="roleSelector" onchange="switchRole(this.value)" class="bg-emerald-700 text-white font-medium py-1 px-3 rounded border border-emerald-500 text-sm outline-none">
-                <option value="customer">🍔 Customer View</option>
-                <option value="rider">🏍️ Rider View</option>
-                <option value="restaurant">🍳 Restaurant Dashboard</option>
+    <header class="bg-emerald-600 text-white shadow-lg p-4 sticky top-0 z-50 safe-area">
+        <div class="flex justify-between items-center gap-4">
+            <h1 class="text-xl font-bold tracking-tight flex-1">🚀 DirectBite</h1>
+            <select id="roleSelector" onchange="switchRole(this.value)" class="bg-emerald-700 text-white font-medium py-2 px-3 rounded-lg border border-emerald-500 text-sm outline-none mobile-button">
+                <option value="customer">🍔 Customer</option>
+                <option value="rider">🏍️ Rider</option>
+                <option value="restaurant">🍳 Restaurant</option>
             </select>
         </div>
     </header>
 
     <!-- LIVE STATS ACCOUNTING GRID -->
-    <section class="max-w-4xl mx-auto px-4 mt-4 mb-4">
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+    <section class="px-4 mt-4 mb-4">
+        <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
+            <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm">
                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">🍔 Customer Paid</p>
                 <p class="text-lg font-black text-slate-900" id="metricCustomerPaid">₹0</p>
                 <span class="text-[10px] text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded font-bold">Saved: ₹<span id="metricCustomerSaved">0</span></span>
             </div>
-            <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">🍳 Kitchen Net Rev</p>
+            <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">🍳 Kitchen Rev</p>
                 <p class="text-lg font-black text-slate-900" id="metricRestaurantEarned">₹0</p>
                 <span class="text-[10px] text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded font-bold">Loss Saved: ₹<span id="metricRestaurantSaved">0</span></span>
             </div>
-            <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+            <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm">
                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">🏍️ Rider Pool</p>
                 <p class="text-lg font-black text-emerald-600" id="metricRiderEarned">₹0</p>
                 <span class="text-[10px] text-slate-500 font-medium">Avg Bid: ₹35</span>
             </div>
-            <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">📦 Vol Volume</p>
+            <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">📦 Volume</p>
                 <p class="text-lg font-black text-slate-900" id="metricTotalDelivered">0</p>
                 <span class="text-[10px] text-purple-600 font-bold bg-purple-50 px-1.5 rounded">Completed</span>
             </div>
@@ -61,160 +86,176 @@
     </section>
 
     <!-- MAIN INTERFACE INTERACTION PANELS -->
-    <main class="max-w-4xl mx-auto p-4">
+    <main class="px-4">
 
-        <!-- CUSTOMER OVERLAY PANEL -->
+        <!-- CUSTOMER VIEW -->
         <section id="customerView" class="view-panel space-y-4">
             <!-- LOCATION CARD -->
-            <div class="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white p-4 rounded-xl shadow-md border border-emerald-400">
-                <div class="flex justify-between items-center gap-3">
-                    <div>
+            <div class="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white p-4 rounded-lg shadow-md border border-emerald-400">
+                <div class="flex justify-between items-start gap-3">
+                    <div class="flex-1">
                         <p class="text-xs opacity-90 mb-1">📍 Current Location</p>
-                        <p class="text-sm font-bold" id="locationDisplay">Detecting location...</p>
-                        <p class="text-[10px] opacity-75 mt-1" id="locationCoords"></p>
+                        <p class="text-sm font-bold" id="locationDisplay">Bengaluru</p>
+                        <p class="text-[10px] opacity-75 mt-1" id="locationCoords">12.9716, 77.5946</p>
                     </div>
-                    <button onclick="requestUserLocation()" class="bg-white text-emerald-700 font-bold py-2 px-4 rounded-lg text-xs shadow hover:bg-emerald-50 transition flex items-center gap-2">
-                        📍 Use My Location
+                    <button onclick="requestUserLocation()" class="bg-white text-emerald-700 font-bold py-2 px-3 rounded-lg text-xs shadow hover:bg-emerald-50 transition mobile-button">
+                        📍 Use Location
                     </button>
                 </div>
             </div>
 
-            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-                <h2 class="text-md font-bold mb-2">1. Select Item (Dine-In Pricing)</h2>
-                <div class="p-3 border border-slate-100 rounded-lg flex justify-between items-center bg-slate-50">
+            <!-- FOOD SELECTION -->
+            <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-200">
+                <h2 class="text-sm font-bold mb-3">1️⃣ Select Item</h2>
+                <div class="p-3 border border-slate-100 rounded-lg space-y-2 bg-slate-50">
                     <div>
                         <p class="font-semibold text-sm">Special Chicken Biryani Thali</p>
-                        <p class="text-xs text-slate-500">Direct Menu Price: <span class="text-emerald-600 font-bold">₹220</span> <span class="line-through text-slate-400">₹310 on apps</span></p>
+                        <p class="text-xs text-slate-500">Direct Price: <span class="text-emerald-600 font-bold">₹220</span> <span class="line-through text-slate-400">₹310 on apps</span></p>
                     </div>
-                    <button onclick="selectFood(220, 'Kishan Bakes', 'kishanbakes@oksbi')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-1.5 px-4 rounded text-xs shadow-sm transition">Select</button>
+                    <button onclick="selectFood(220, 'Kishan Bakes', 'kishanbakes@upi')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded text-xs shadow-sm transition mobile-button">
+                        Select & Continue
+                    </button>
                 </div>
             </div>
 
-            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+            <!-- NEARBY RESTAURANTS -->
+            <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-200">
                 <div class="flex justify-between items-center mb-3">
-                    <h2 class="text-md font-bold">Nearby Restaurants</h2>
-                    <button onclick="refreshNearbyData('restaurants')" class="text-[10px] font-semibold text-emerald-600 hover:text-emerald-700 transition">🔄 Refresh</button>
+                    <h2 class="text-sm font-bold">Nearby Restaurants</h2>
+                    <button onclick="refreshNearbyData('restaurants')" class="text-[10px] font-semibold text-emerald-600 hover:text-emerald-700">🔄 Refresh</button>
                 </div>
                 <div id="nearbyRestaurantsList" class="space-y-2">
-                    <p class="text-xs text-slate-400 text-center py-4">Loading restaurants...</p>
+                    <p class="text-xs text-slate-400 text-center py-4">Loading...</p>
                 </div>
             </div>
 
-            <div id="customerBiddingPanel" class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 hidden">
+            <!-- RIDER BIDS -->
+            <div id="customerBiddingPanel" class="bg-white p-4 rounded-lg shadow-sm border border-slate-200 hidden">
                 <div class="flex justify-between items-center mb-3">
-                    <h2 class="text-md font-bold">2. Live Local Rider Bids</h2>
-                    <button onclick="refreshNearbyData('riders')" class="text-[10px] font-semibold text-emerald-600 hover:text-emerald-700 transition">🔄 Refresh</button>
+                    <h2 class="text-sm font-bold">2️⃣ Live Rider Bids</h2>
+                    <button onclick="refreshNearbyData('riders')" class="text-[10px] font-semibold text-emerald-600">🔄</button>
                 </div>
                 <div id="liveBidsList" class="space-y-2">
-                    <span class="animate-pulse bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full inline-block">Waiting for drivers...</span>
+                    <span class="animate-pulse bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full inline-block">Waiting...</span>
                 </div>
             </div>
 
-            <div id="checkoutPanel" class="bg-white p-4 rounded-xl border border-emerald-200 bg-emerald-50/20 hidden">
-                <h2 class="text-md font-bold mb-2">3. Direct UPI P2P Checkout</h2>
-                <div class="p-3 bg-white border rounded-lg space-y-2 text-xs">
-                    <div class="flex justify-between"><span>Food Total:</span><span id="summaryFood" class="font-bold">₹0</span></div>
-                    <div class="flex justify-between"><span>Delivery Rider Bid:</span><span id="summaryDelivery" class="font-bold text-emerald-600">₹0</span></div>
-                    <div class="border-t pt-2 flex justify-between font-black text-sm"><span>Total Net Payout:</span><span id="summaryTotal">₹0</span></div>
-                    <a id="directUpiPayBtn" href="#" onclick="finalizeOrderSimulation(event)" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded block text-center shadow-sm transition">Pay via UPI</a>
+            <!-- CHECKOUT -->
+            <div id="checkoutPanel" class="bg-white p-4 rounded-lg border border-emerald-200 shadow-sm hidden">
+                <h2 class="text-sm font-bold mb-3">3️⃣ Checkout</h2>
+                <div class="p-3 bg-slate-50 border rounded-lg space-y-2 text-xs mb-3">
+                    <div class="flex justify-between"><span>Food:</span><span id="summaryFood" class="font-bold">₹0</span></div>
+                    <div class="flex justify-between"><span>Rider Bid:</span><span id="summaryDelivery" class="font-bold text-emerald-600">₹0</span></div>
+                    <div class="border-t pt-2 flex justify-between font-black text-sm"><span>Total:</span><span id="summaryTotal">₹0</span></div>
                 </div>
+                <button onclick="finalizeOrderSimulation(event)" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-lg shadow-md transition mobile-button">
+                    Pay via UPI P2P
+                </button>
             </div>
         </section>
 
-        <!-- RIDER BID PANEL -->
+        <!-- RIDER VIEW -->
         <section id="riderView" class="view-panel space-y-4 hidden">
-            <!-- LOCATION CARD FOR RIDER -->
-            <div class="bg-gradient-to-r from-amber-500 to-orange-600 text-white p-4 rounded-xl shadow-md border border-amber-400">
-                <div class="flex justify-between items-center gap-3">
-                    <div>
+            <!-- RIDER LOCATION -->
+            <div class="bg-gradient-to-r from-amber-500 to-orange-600 text-white p-4 rounded-lg shadow-md border border-amber-400">
+                <div class="flex justify-between items-start gap-3">
+                    <div class="flex-1">
                         <p class="text-xs opacity-90 mb-1">📍 Your Location</p>
-                        <p class="text-sm font-bold" id="riderLocationDisplay">Detecting location...</p>
-                        <p class="text-[10px] opacity-75 mt-1" id="riderLocationCoords"></p>
+                        <p class="text-sm font-bold" id="riderLocationDisplay">Bengaluru</p>
+                        <p class="text-[10px] opacity-75 mt-1" id="riderLocationCoords">12.9716, 77.5946</p>
                     </div>
-                    <button onclick="requestUserLocation()" class="bg-white text-orange-700 font-bold py-2 px-4 rounded-lg text-xs shadow hover:bg-orange-50 transition flex items-center gap-2">
-                        📍 Update Location
+                    <button onclick="requestUserLocation()" class="bg-white text-orange-700 font-bold py-2 px-3 rounded-lg text-xs shadow mobile-button">
+                        📍 Update
                     </button>
                 </div>
             </div>
 
-            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+            <!-- ACTIVE JOBS -->
+            <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-200">
                 <div class="flex justify-between items-center mb-3">
-                    <h2 class="text-md font-bold">Active Jobs Seeking Bids</h2>
-                    <button onclick="refreshNearbyData('jobs')" class="text-[10px] font-semibold text-emerald-600 hover:text-emerald-700 transition">🔄 Refresh</button>
+                    <h2 class="text-sm font-bold">🎯 Available Jobs</h2>
+                    <button onclick="refreshNearbyData('jobs')" class="text-[10px] font-semibold text-emerald-600">🔄</button>
                 </div>
-                <div id="riderJobsList" class="text-xs text-slate-400 text-center py-4">Loading jobs...</div>
+                <div id="riderJobsList" class="text-xs text-slate-400 text-center py-4">Loading...</div>
             </div>
         </section>
 
-        <!-- RESTAURANT DASHBOARD -->
+        <!-- RESTAURANT VIEW -->
         <section id="restaurantView" class="view-panel space-y-4 hidden">
-            <!-- LOCATION CARD FOR RESTAURANT -->
-            <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 rounded-xl shadow-md border border-blue-400">
-                <div class="flex justify-between items-center gap-3">
-                    <div>
-                        <p class="text-xs opacity-90 mb-1">🏪 Restaurant Location</p>
-                        <p class="text-sm font-bold" id="restaurantLocationDisplay">Detecting location...</p>
-                        <p class="text-[10px] opacity-75 mt-1" id="restaurantLocationCoords"></p>
+            <!-- RESTAURANT LOCATION -->
+            <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 rounded-lg shadow-md border border-blue-400">
+                <div class="flex justify-between items-start gap-3">
+                    <div class="flex-1">
+                        <p class="text-xs opacity-90 mb-1">🏪 Restaurant</p>
+                        <p class="text-sm font-bold" id="restaurantLocationDisplay">Bengaluru</p>
+                        <p class="text-[10px] opacity-75 mt-1" id="restaurantLocationCoords">12.9716, 77.5946</p>
                     </div>
-                    <button onclick="requestUserLocation()" class="bg-white text-blue-700 font-bold py-2 px-4 rounded-lg text-xs shadow hover:bg-blue-50 transition flex items-center gap-2">
-                        📍 Set Location
+                    <button onclick="requestUserLocation()" class="bg-white text-blue-700 font-bold py-2 px-3 rounded-lg text-xs shadow mobile-button">
+                        📍 Set
                     </button>
                 </div>
             </div>
 
-            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+            <!-- INCOMING ORDERS -->
+            <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-200">
                 <div class="flex justify-between items-center mb-3">
-                    <h2 class="text-md font-bold">Incoming Direct Orders</h2>
-                    <button onclick="refreshNearbyData('orders')" class="text-[10px] font-semibold text-emerald-600 hover:text-emerald-700 transition">🔄 Refresh</button>
+                    <h2 class="text-sm font-bold">📋 Incoming Orders</h2>
+                    <button onclick="refreshNearbyData('orders')" class="text-[10px] font-semibold text-emerald-600">🔄</button>
                 </div>
-                <div id="restaurantOrdersList" class="text-xs text-slate-400 text-center py-4">Loading orders...</div>
+                <div id="restaurantOrdersList" class="text-xs text-slate-400 text-center py-4">Loading...</div>
             </div>
         </section>
 
-        <!-- THERMAL PRINT POPUP PANEL -->
-        <section id="kitchenReceiptPanel" class="bg-white p-4 rounded-xl border border-slate-200 mt-4 shadow-sm hidden">
-            <div class="flex justify-between items-center mb-2">
-                <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider">🖨️ Thermal Print Receipt Token</h2>
-                <button onclick="window.print()" class="bg-slate-900 text-white text-xs px-2 py-1 rounded font-medium hover:bg-slate-800 transition">Print Token</button>
+        <!-- RECEIPT -->
+        <section id="kitchenReceiptPanel" class="bg-white p-4 rounded-lg border border-slate-200 mt-4 shadow-sm hidden">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-xs font-bold text-slate-400 uppercase">🖨️ Receipt</h2>
+                <button onclick="window.print()" class="bg-slate-900 text-white text-xs px-3 py-2 rounded font-medium mobile-button">Print</button>
             </div>
-            <div class="border p-4 max-w-[280px] mx-auto bg-white text-black font-mono text-[11px] space-y-1 shadow-inner" id="receiptPrintArea">
-                <p class="text-center font-bold text-sm">*** DIRECT BITE ***</p>
-                <p class="text-center text-[9px] text-slate-500">0% MIDDLEMAN LEAKAGE</p>
-                <div class="border-b border-dashed border-slate-300 my-2"></div>
-                <p>TOKEN ID: <span id="rcptTokenId" class="font-bold">#DB-0000</span></p>
-                <p>STATUS: PAID VIA UPI P2P</p>
-                <div class="border-b border-dashed border-slate-300 my-2"></div>
-                <p class="flex justify-between font-bold"><span>1x Chicken Biryani Thali</span><span id="rcptFood">₹0</span></p>
-                <p class="flex justify-between text-[10px]"><span>Rider Delivery Payout:</span><span id="rcptDelivery">₹0</span></p>
-                <div class="border-t border-dotted border-slate-400 pt-1 flex justify-between font-bold text-sm"><span>NET AMOUNT:</span><span id="rcptTotal">₹0</span></div>
-                <div class="border-b border-dashed border-slate-300 my-2"></div>
-                <p class="text-[10px] font-bold text-slate-600">DELIVERY DESTINATION:</p>
-                <p class="text-[10px] leading-tight" id="rcptAddress">Flat 502, Wing-C, Emerald Greens Residency Hub</p>
+            <div class="border p-3 max-w-xs mx-auto bg-white text-black font-mono text-[11px] space-y-1 shadow-inner" id="receiptPrintArea">
+                <p class="text-center font-bold">*** DIRECT BITE ***</p>
+                <p class="text-center text-[9px] text-slate-500">0% COMMISSION</p>
+                <div class="border-b border-dashed my-1"></div>
+                <p>TOKEN: <span id="rcptTokenId">#DB-001</span></p>
+                <p>STATUS: PAID</p>
+                <div class="border-b border-dashed my-1"></div>
+                <p class="flex justify-between"><span>1x Biryani Thali</span><span id="rcptFood">₹0</span></p>
+                <p class="flex justify-between text-[10px]"><span>Delivery:</span><span id="rcptDelivery">₹0</span></p>
+                <div class="border-t border-dotted pt-1 flex justify-between font-bold"><span>TOTAL:</span><span id="rcptTotal">₹0</span></div>
             </div>
         </section>
     </main>
 
-    <!-- CORE SYSTEM BACKEND INTEGRATION ENGINE -->
-    <script type="module">
-        // --- SUPABASE CONFIGURATION ---
-        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.38.4/+esm';
+    <!-- CORE SYSTEM BACKEND -->
+    <script>
+        // === MOCK DATA LAYER (No Supabase Required) ===
+        const mockData = {
+            restaurants: [
+                { id: 1, name: "Kishan Bakes", cuisine_type: "North Indian", latitude: 12.975, longitude: 77.597, delivery_time: "20", rating: 4.8 },
+                { id: 2, name: "Spice Garden", cuisine_type: "Mughlai", latitude: 12.968, longitude: 77.591, delivery_time: "25", rating: 4.6 },
+                { id: 3, name: "Paradise Biryani", cuisine_type: "Hyderabadi", latitude: 12.980, longitude: 77.600, delivery_time: "15", rating: 4.9 },
+                { id: 4, name: "Dosa Corner", cuisine_type: "South Indian", latitude: 12.970, longitude: 77.585, delivery_time: "10", rating: 4.4 },
+                { id: 5, name: "Street Food Master", cuisine_type: "Street Food", latitude: 12.960, longitude: 77.595, delivery_time: "5", rating: 4.7 }
+            ],
+            riders: [
+                { id: 101, name: "Raj Kumar", vehicle_type: "Bike", latitude: 12.975, longitude: 77.598, rating: 4.9, current_orders: 1, is_active: true },
+                { id: 102, name: "Priya Singh", vehicle_type: "Scooter", latitude: 12.972, longitude: 77.592, rating: 4.7, current_orders: 2, is_active: true },
+                { id: 103, name: "Amit Patel", vehicle_type: "Bike", latitude: 12.968, longitude: 77.600, rating: 4.8, current_orders: 0, is_active: true },
+                { id: 104, name: "Neha Sharma", vehicle_type: "Scooter", latitude: 12.965, longitude: 77.588, rating: 4.6, current_orders: 1, is_active: true }
+            ],
+            orders: [
+                { id: 1001, customer_name: "John Doe", pickup_lat: 12.975, pickup_lng: 77.597, delivery_lat: 12.962, delivery_lng: 77.590, delivery_address: "Marathahalli", total_amount: 250, payout: 35, items: ["Biryani", "Naan"], status: "waiting_rider" },
+                { id: 1002, customer_name: "Sarah Khan", pickup_lat: 12.968, pickup_lng: 77.591, delivery_lat: 12.955, delivery_lng: 77.595, delivery_address: "Indiranagar", total_amount: 180, payout: 28, items: ["Dosa", "Sambar"], status: "waiting_rider" },
+                { id: 1003, customer_name: "Mike Johnson", pickup_lat: 12.980, pickup_lng: 77.600, delivery_lat: 12.970, delivery_lng: 77.605, delivery_address: "Koramangala", total_amount: 320, payout: 45, items: ["Mutton Biryani", "Raita"], status: "confirmed" }
+            ]
+        };
 
-        const SUPABASE_URL = "https://xmjaikatrakvtvgrwvka.supabase.co";
-        const SUPABASE_KEY = "sb_publishable_Q2Z0rdOFCICVv6TY789JzQ_OMZqsnBC";
-
-        let supabaseClient;
-        try {
-            supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
-        } catch (e) {
-            console.log("Supabase setup error:", e);
-        }
-
-        // --- APP STATE CONFIGURATION ---
+        // === APP STATE ===
         window.currentOrder = { food_cost: 0, restaurant_name: "", restaurant_vpa: "", selected_fee: 0 };
         window.currentLocation = { lat: 12.9716, lng: 77.5946, label: "Bengaluru" };
         window.isLocationActual = false;
 
-        // --- HELPER FUNCTIONS ---
+        // === HELPER FUNCTIONS ===
         function toRadians(value) {
             return (value * Math.PI) / 180;
         }
@@ -225,9 +266,7 @@
             const dLng = toRadians(pointB.lng - pointA.lng);
             const lat1 = toRadians(pointA.lat);
             const lat2 = toRadians(pointB.lat);
-            const a =
-                Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
             return 2 * earthRadiusKm * Math.asin(Math.sqrt(a));
         }
 
@@ -258,10 +297,10 @@
             }
         }
 
-        // --- LOCATION REQUEST ---
+        // === LOCATION REQUEST ===
         window.requestUserLocation = async function() {
             if (!navigator.geolocation) {
-                alert("Geolocation not supported");
+                alert("Geolocation not supported on this device");
                 return;
             }
 
@@ -275,7 +314,6 @@
                     window.isLocationActual = true;
                     updateLocationUI();
                     
-                    // Refresh all nearby data
                     const role = document.getElementById("roleSelector")?.value || "customer";
                     if (role === "customer") {
                         window.fetchNearbyRestaurants();
@@ -287,221 +325,159 @@
                     }
                 },
                 () => {
-                    alert("Unable to get location. Using default location.");
+                    console.log("Using default location (Bengaluru)");
                 }
             );
         };
 
-        // --- SUPABASE DATA FETCHING ---
+        // === DATA FETCHING (Mock Data) ===
         window.fetchNearbyRestaurants = async function() {
             const list = document.getElementById("nearbyRestaurantsList");
             if (!list) return;
 
-            list.innerHTML = '<p class="text-xs text-slate-400 text-center py-4">Loading restaurants...</p>';
+            list.innerHTML = '<p class="text-xs text-slate-400 text-center py-4">Loading...</p>';
 
-            try {
-                if (!supabaseClient) throw new Error("Supabase not configured");
-
+            setTimeout(() => {
                 const radiusKm = 5;
-                const { data, error } = await supabaseClient
-                    .from("restaurants")
-                    .select("id, name, latitude, longitude, cuisine_type, delivery_time, rating");
-
-                if (error) throw error;
-
-                const restaurants = (data || [])
-                    .map((restaurant) => ({
-                        ...restaurant,
-                        distance: calculateDistanceKm(
-                            window.currentLocation,
-                            { lat: restaurant.latitude, lng: restaurant.longitude }
-                        )
+                const restaurants = mockData.restaurants
+                    .map((r) => ({
+                        ...r,
+                        distance: calculateDistanceKm(window.currentLocation, { lat: r.latitude, lng: r.longitude })
                     }))
                     .filter((r) => r.distance <= radiusKm)
-                    .sort((a, b) => a.distance - b.distance)
-                    .slice(0, 5);
+                    .sort((a, b) => a.distance - b.distance);
 
                 if (!restaurants.length) {
-                    list.innerHTML = '<p class="text-xs text-slate-400">No restaurants nearby yet.</p>';
+                    list.innerHTML = '<p class="text-xs text-slate-400 text-center py-4">No restaurants nearby</p>';
                     return;
                 }
 
-                list.innerHTML = restaurants.map((restaurant) => `
+                list.innerHTML = restaurants.map((r) => `
                     <div class="p-3 border border-slate-200 rounded-lg bg-slate-50 hover:bg-emerald-50 transition cursor-pointer">
-                        <div class="flex justify-between items-center gap-2">
-                            <div>
-                                <p class="font-bold text-sm text-slate-800">${restaurant.name}</p>
-                                <p class="text-[10px] text-slate-500">⭐ ${(restaurant.rating || 4.5).toFixed(1)} • ${restaurant.cuisine_type || "Multi"}</p>
+                        <div class="flex justify-between items-start gap-2">
+                            <div class="flex-1">
+                                <p class="font-bold text-sm text-slate-800">${r.name}</p>
+                                <p class="text-[10px] text-slate-500">⭐ ${r.rating} • ${r.cuisine_type}</p>
                             </div>
                             <div class="text-right">
-                                <span class="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-1 rounded-full block mb-1">${formatDistance(restaurant.distance)}</span>
-                                <p class="text-[10px] text-slate-500">${restaurant.delivery_time || "15-20"} min</p>
+                                <span class="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-1 rounded-full block mb-1">${formatDistance(r.distance)}</span>
+                                <p class="text-[10px] text-slate-500">${r.delivery_time} min</p>
                             </div>
                         </div>
                     </div>
                 `).join("");
-            } catch (error) {
-                console.error("Error fetching restaurants:", error);
-                list.innerHTML = '<p class="text-xs text-red-500">Error loading restaurants. Check Supabase config.</p>';
-            }
+            }, 300);
         };
 
         window.fetchNearbyRiders = async function() {
             const list = document.getElementById("liveBidsList");
             if (!list) return;
 
-            try {
-                if (!supabaseClient) throw new Error("Supabase not configured");
-
+            setTimeout(() => {
                 const radiusKm = 3;
-                const { data, error } = await supabaseClient
-                    .from("riders")
-                    .select("id, name, latitude, longitude, rating, vehicle_type, current_orders")
-                    .eq("is_active", true);
-
-                if (error) throw error;
-
-                const riders = (data || [])
-                    .map((rider) => ({
-                        ...rider,
-                        distance: calculateDistanceKm(
-                            window.currentLocation,
-                            { lat: rider.latitude, lng: rider.longitude }
-                        )
+                const riders = mockData.riders
+                    .map((r) => ({
+                        ...r,
+                        distance: calculateDistanceKm(window.currentLocation, { lat: r.latitude, lng: r.longitude })
                     }))
-                    .filter((r) => r.distance <= radiusKm)
-                    .sort((a, b) => a.distance - b.distance)
-                    .slice(0, 4);
+                    .filter((r) => r.distance <= radiusKm && r.is_active)
+                    .sort((a, b) => a.distance - b.distance);
 
                 if (!riders.length) {
-                    list.innerHTML = '<p class="text-xs text-slate-400">No riders nearby.</p>';
+                    list.innerHTML = '<p class="text-xs text-slate-400 text-center py-4">No riders nearby</p>';
                     return;
                 }
 
-                list.innerHTML = riders.map((rider) => `
-                    <div class="p-3 border border-amber-100 rounded-lg bg-amber-50/40 flex justify-between items-center gap-2">
-                        <div>
-                            <p class="font-bold text-sm text-slate-800">${rider.name}</p>
-                            <p class="text-[10px] text-slate-500">⭐ ${(rider.rating || 4.5).toFixed(1)} • ${rider.vehicle_type || "2Wheeler"}</p>
+                list.innerHTML = riders.map((r) => `
+                    <div class="p-3 border border-amber-100 rounded-lg bg-amber-50/40 flex justify-between items-center gap-2 cursor-pointer hover:bg-amber-50" onclick="selectRider(${r.id}, '${r.name}', ${Math.floor(Math.random() * 40 + 25)})">
+                        <div class="flex-1">
+                            <p class="font-bold text-sm text-slate-800">${r.name}</p>
+                            <p class="text-[10px] text-slate-500">⭐ ${r.rating} • ${r.vehicle_type}</p>
                         </div>
                         <div class="text-right">
-                            <p class="font-black text-emerald-600 text-xs">ETA ${formatDistance(rider.distance)}</p>
-                            <p class="text-[10px] text-slate-500">${rider.current_orders || 1} active</p>
+                            <p class="font-black text-emerald-600 text-xs">ETA ${formatDistance(r.distance)}</p>
+                            <p class="text-[10px] text-slate-500">${r.current_orders} active</p>
                         </div>
                     </div>
                 `).join("");
-            } catch (error) {
-                console.error("Error fetching riders:", error);
-                list.innerHTML = '<p class="text-xs text-slate-400">No riders available.</p>';
-            }
+            }, 300);
         };
 
         window.fetchRiderJobs = async function() {
             const list = document.getElementById("riderJobsList");
             if (!list) return;
 
-            list.innerHTML = '<p class="text-xs text-slate-400 text-center py-4">Loading jobs...</p>';
+            list.innerHTML = '<p class="text-xs text-slate-400 text-center py-4">Loading...</p>';
 
-            try {
-                if (!supabaseClient) throw new Error("Supabase not configured");
-
+            setTimeout(() => {
                 const radiusKm = 5;
-                const { data, error } = await supabaseClient
-                    .from("orders")
-                    .select("id, customer_name, pickup_lat, pickup_lng, delivery_address, payout, status")
-                    .eq("status", "waiting_rider");
-
-                if (error) throw error;
-
-                const jobs = (data || [])
-                    .map((job) => ({
-                        ...job,
-                        distanceKm: calculateDistanceKm(
-                            window.currentLocation,
-                            { lat: job.pickup_lat, lng: job.pickup_lng }
-                        )
+                const jobs = mockData.orders
+                    .map((j) => ({
+                        ...j,
+                        distanceKm: calculateDistanceKm(window.currentLocation, { lat: j.pickup_lat, lng: j.pickup_lng })
                     }))
-                    .filter((j) => j.distanceKm <= radiusKm)
+                    .filter((j) => j.status === "waiting_rider" && j.distanceKm <= radiusKm)
                     .sort((a, b) => a.distanceKm - b.distanceKm);
 
                 if (!jobs.length) {
-                    list.innerHTML = '<div class="text-xs text-slate-400 text-center py-4">No requests found...</div>';
+                    list.innerHTML = '<div class="text-xs text-slate-400 text-center py-4">No jobs available</div>';
                     return;
                 }
 
-                list.innerHTML = jobs.map((job) => `
-                    <div class="p-3 border border-slate-200 rounded-lg bg-slate-50 hover:bg-emerald-50 transition cursor-pointer">
-                        <div class="flex justify-between items-center gap-2">
-                            <div>
-                                <p class="font-bold text-sm text-slate-800">${job.customer_name}</p>
-                                <p class="text-[10px] text-slate-500">${job.delivery_address || "Delivery pending"}</p>
+                list.innerHTML = jobs.map((j) => `
+                    <div class="p-3 border border-slate-200 rounded-lg bg-slate-50 hover:bg-green-50 transition cursor-pointer">
+                        <div class="flex justify-between items-start gap-2">
+                            <div class="flex-1">
+                                <p class="font-bold text-sm text-slate-800">${j.customer_name}</p>
+                                <p class="text-[10px] text-slate-500">${j.delivery_address}</p>
                             </div>
-                            <span class="text-[10px] font-bold bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full">₹${job.payout || "TBD"}</span>
+                            <span class="text-[10px] font-bold bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full">₹${j.payout}</span>
                         </div>
                         <div class="mt-2 flex justify-between text-[10px] text-slate-500">
-                            <span>📍 ${formatDistance(job.distanceKm)}</span>
-                            <span class="text-emerald-600 font-bold cursor-pointer hover:text-emerald-700">Accept Bid →</span>
+                            <span>📍 ${formatDistance(j.distanceKm)}</span>
+                            <span class="text-emerald-600 font-bold">Accept →</span>
                         </div>
                     </div>
                 `).join("");
-            } catch (error) {
-                console.error("Error fetching jobs:", error);
-                list.innerHTML = '<div class="text-xs text-slate-400 text-center py-4">Check Supabase config</div>';
-            }
+            }, 300);
         };
 
         window.fetchRestaurantOrders = async function() {
             const list = document.getElementById("restaurantOrdersList");
             if (!list) return;
 
-            list.innerHTML = '<p class="text-xs text-slate-400 text-center py-4">Loading orders...</p>';
+            list.innerHTML = '<p class="text-xs text-slate-400 text-center py-4">Loading...</p>';
 
-            try {
-                if (!supabaseClient) throw new Error("Supabase not configured");
-
-                const { data, error } = await supabaseClient
-                    .from("orders")
-                    .select("id, customer_name, delivery_lat, delivery_lng, total_amount, items, status")
-                    .eq("status", "confirmed")
-                    .order("created_at", { ascending: false })
-                    .limit(10);
-
-                if (error) throw error;
-
-                const orders = (data || [])
-                    .map((order) => ({
-                        ...order,
-                        distanceKm: calculateDistanceKm(
-                            window.currentLocation,
-                            { lat: order.delivery_lat, lng: order.delivery_lng }
-                        )
+            setTimeout(() => {
+                const orders = mockData.orders
+                    .filter((o) => o.status === "confirmed")
+                    .map((o) => ({
+                        ...o,
+                        distanceKm: calculateDistanceKm(window.currentLocation, { lat: o.delivery_lat, lng: o.delivery_lng })
                     }))
                     .sort((a, b) => a.distanceKm - b.distanceKm);
 
                 if (!orders.length) {
-                    list.innerHTML = '<div class="text-xs text-slate-400 text-center py-4">Waiting for customer checkouts...</div>';
+                    list.innerHTML = '<div class="text-xs text-slate-400 text-center py-4">No active orders</div>';
                     return;
                 }
 
-                list.innerHTML = orders.map((order) => `
-                    <div class="p-3 border border-slate-200 rounded-lg bg-slate-50 hover:bg-blue-50 transition cursor-pointer">
-                        <div class="flex justify-between items-center gap-2">
-                            <div>
-                                <p class="font-bold text-sm text-slate-800">${order.customer_name}</p>
-                                <p class="text-[10px] text-slate-500">${order.items ? order.items.slice(0, 2).join(", ") : "Order"}</p>
+                list.innerHTML = orders.map((o) => `
+                    <div class="p-3 border border-slate-200 rounded-lg bg-slate-50 hover:bg-blue-50 transition">
+                        <div class="flex justify-between items-start gap-2">
+                            <div class="flex-1">
+                                <p class="font-bold text-sm text-slate-800">${o.customer_name}</p>
+                                <p class="text-[10px] text-slate-500">${o.items.join(", ")}</p>
                             </div>
-                            <span class="text-[10px] font-bold bg-blue-100 text-blue-700 px-2 py-1 rounded-full">₹${order.total_amount || 0}</span>
+                            <span class="text-[10px] font-bold bg-blue-100 text-blue-700 px-2 py-1 rounded-full">₹${o.total_amount}</span>
                         </div>
                         <div class="mt-2 flex justify-between text-[10px] text-slate-500">
-                            <span>📍 ${formatDistance(order.distanceKm)}</span>
-                            <span class="text-blue-600 font-bold">Preparing →</span>
+                            <span>📍 ${formatDistance(o.distanceKm)}</span>
+                            <span class="text-blue-600 font-bold">Preparing</span>
                         </div>
                     </div>
                 `).join("");
-            } catch (error) {
-                console.error("Error fetching orders:", error);
-                list.innerHTML = '<div class="text-xs text-slate-400 text-center py-4">Check configuration</div>';
-            }
+            }, 300);
         };
 
         window.refreshNearbyData = function(type) {
@@ -511,37 +487,67 @@
             if (type === "orders") window.fetchRestaurantOrders();
         };
 
+        // === BUSINESS LOGIC ===
+        window.selectFood = function(price, restaurant, vpa) {
+            window.currentOrder.food_cost = price;
+            window.currentOrder.restaurant_name = restaurant;
+            window.currentOrder.restaurant_vpa = vpa;
+            
+            document.getElementById("customerBiddingPanel")?.classList.remove("hidden");
+            document.getElementById("summaryFood").textContent = `₹${price}`;
+            
+            window.fetchNearbyRiders();
+        };
+
+        window.selectRider = function(riderId, riderName, bidAmount) {
+            window.currentOrder.selected_fee = bidAmount;
+            
+            const total = window.currentOrder.food_cost + bidAmount;
+            document.getElementById("checkoutPanel")?.classList.remove("hidden");
+            document.getElementById("summaryDelivery").textContent = `₹${bidAmount}`;
+            document.getElementById("summaryTotal").textContent = `₹${total}`;
+            
+            document.getElementById("rcptFood").textContent = `₹${window.currentOrder.food_cost}`;
+            document.getElementById("rcptDelivery").textContent = `₹${bidAmount}`;
+            document.getElementById("rcptTotal").textContent = `₹${total}`;
+        };
+
+        window.finalizeOrderSimulation = function(event) {
+            event.preventDefault();
+            
+            const tokenId = `#DB-${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}`;
+            document.getElementById("rcptTokenId").textContent = tokenId;
+            document.getElementById("kitchenReceiptPanel")?.classList.remove("hidden");
+            
+            alert(`✅ Order Confirmed!\n\nToken: ${tokenId}\nTotal: ₹${window.currentOrder.food_cost + window.currentOrder.selected_fee}\n\nUPI Payment Processing...`);
+        };
+
         window.switchRole = function(role) {
             const roleSelector = document.getElementById("roleSelector");
             if (roleSelector) roleSelector.value = role;
 
-            const panels = document.querySelectorAll(".view-panel");
-            panels.forEach((panel) => panel.classList.add("hidden"));
+            document.querySelectorAll(".view-panel").forEach((panel) => panel.classList.add("hidden"));
 
             if (role === "customer") {
                 document.getElementById("customerView")?.classList.remove("hidden");
                 window.fetchNearbyRestaurants();
                 window.fetchNearbyRiders();
                 document.getElementById("customerBiddingPanel")?.classList.remove("hidden");
-            }
-
-            if (role === "rider") {
+            } else if (role === "rider") {
                 document.getElementById("riderView")?.classList.remove("hidden");
                 window.fetchRiderJobs();
-            }
-
-            if (role === "restaurant") {
+            } else if (role === "restaurant") {
                 document.getElementById("restaurantView")?.classList.remove("hidden");
                 window.fetchRestaurantOrders();
             }
         };
 
-        // --- INITIALIZATION ---
+        // === INITIALIZATION ===
         function initializeApp() {
             updateLocationUI();
             window.switchRole(document.getElementById("roleSelector")?.value || "customer");
 
-            // Auto-refresh every 15 seconds
+            // Auto-refresh every 20 seconds
             setInterval(() => {
                 const role = document.getElementById("roleSelector")?.value;
                 if (role === "customer") {
@@ -552,7 +558,7 @@
                 } else if (role === "restaurant") {
                     window.fetchRestaurantOrders();
                 }
-            }, 15000);
+            }, 20000);
         }
 
         window.addEventListener("DOMContentLoaded", initializeApp);
