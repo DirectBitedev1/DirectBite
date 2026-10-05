@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DirectBite | Admin Dashboard</title>
+    <script src="https://tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.38.4/+esm" type="module"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+</head>
+<body class="bg-slate-900 text-white font-sans">
+
+    <!-- ADMIN HEADER -->
+    <header class="bg-gradient-to-r from-slate-800 to-slate-900 shadow-lg p-4 sticky top-0 z-50 border-b border-slate-700">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold tracking-tight">🔧 DirectBite Admin</h1>
+            <div class="flex gap-4 items-center">
+                <span id="adminStatus" class="text-sm text-emerald-400">● Connected</span>
+                <button onclick="logout()" class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded transition">Logout</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ADMIN CONTAINER -->
+    <main class="max-w-7xl mx-auto p-4">
+
+        <!-- STATS GRID -->
+        <section class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div class="bg-gradient-to-br from-slate-800 to-slate-700 p-4 rounded-lg border border-slate-600 shadow-lg">
+                <p class="text-slate-400 text-sm mb-1">Total Orders</p>
+                <p class="text-3xl font-black text-emerald-400" id="statTotalOrders">0</p>
+                <p class="text-xs text-slate-500 mt-1">Today: <span id="statTodayOrders">0</span></p>
+            </div>
+            <div class="bg-gradient-to-br from-slate-800 to-slate-700 p-4 rounded-lg border border-slate-600 shadow-lg">
+                <p class="text-slate-400 text-sm mb-1">Revenue</p>
+                <p class="text-3xl font-black text-blue-400" id="statRevenue">₹0</p>
+                <p class="text-xs text-slate-500 mt-1">Commission Saved: ₹<span id="statCommissionSaved">0</span></p>
+            </div>
+            <div class="bg-gradient-to-br from-slate-800 to-slate-700 p-4 rounded-lg border border-slate-600 shadow-lg">
+                <p class="text-slate-400 text-sm mb-1">Active Riders</p>
+                <p class="text-3xl font-black text-orange-400" id="statActiveRiders">0</p>
+                <p class="text-xs text-slate-500 mt-1">Avg Rating: <span id="statAvgRiderRating">4.7</span>⭐</p>
+            </div>
+            <div class="bg-gradient-to-br from-slate-800 to-slate-700 p-4 rounded-lg border border-slate-600 shadow-lg">
+                <p class="text-slate-400 text-sm mb-1">Restaurants</p>
+                <p class="text-3xl font-black text-purple-400" id="statRestaurants">0</p>
+                <p class="text-xs text-slate-500 mt-1">Avg Rating: <span id="statAvgRestaurantRating">4.6</span>⭐</p>
+            </div>
+        </section>
+
+        <!-- TABS -->
+        <div class="flex gap-2 mb-6 border-b border-slate-700">
+            <button onclick="switchTab('restaurants')" class="tab-btn active bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 px-4 rounded-t transition" data-tab="restaurants">🍳 Restaurants</button>
+            <button onclick="switchTab('riders')" class="tab-btn bg-slate-700 hover:bg-slate-600 text-white font-semibold py-2 px-4 rounded-t transition" data-tab="riders">🏍️ Riders</button>
+            <button onclick="switchTab('orders')" class="tab-btn bg-slate-700 hover:bg-slate-600 text-white font-semibold py-2 px-4 rounded-t transition" data-tab="orders">📦 Orders</button>
+            <button onclick="switchTab('analytics')" class="tab-btn bg-slate-700 hover:bg-slate-600 text-white font-semibold py-2 px-4 rounded-t transition" data-tab="analytics">📊 Analytics</button>
+        </div>
+
+        <!-- RESTAURANTS TAB -->
+        <section id="restaurantsTab" class="tab-content mb-6">
+            <div class="bg-slate-800 border border-slate-700 rounded-lg p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold">Manage Restaurants</h2>
+                    <button onclick="openAddRestaurantModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 px-4 rounded transition">+ Add Restaurant</button>
+                </div>
+                <div id="restaurantsTableContainer" class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="border-b border-slate-700">
+                                <th class="text-left py-3 px-4 text-slate-400">Name</th>
+                                <th class="text-left py-3 px-4 text-slate-400">Cuisine</th>
+                                <th class="text-left py-3 px-4 text-slate-400">Location</th>
+                                <th class="text-left py-3 px-4 text-slate-400">Rating</th>
+                                <th class="text-left py-3 px-4 text-slate-400">Delivery Time</th>
+                                <th class="text-left py-3 px-4 text-slate-400">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="restaurantsTable">
+                            <tr><td colspan="6" class="text-center py-4 text-slate-500">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- RIDERS TAB -->
+        <section id="ridersTab" class="tab-content mb-6 hidden">
+            <div class="bg-slate-800 border border-slate-700 rounded-lg p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold">Manage Riders</h2>
+                    <button onclick="openAddRiderModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 px-4 rounded transition">+ Add Rider</button>
+                </div>
+                <div id="ridersTableContainer" class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="border-b border-slate-700">
+                                <th class="text-left py-3 px-4 text-slate-400">Name</th>
+                                <th class="text-left py-3 px-4 text-slate-400">Vehicle</th>
+                                <th class="text-left py-3 px-4 text-slate-400">Location</th>
+                                <th class="text-left py-3 px-4 text-slate-400">Rating</th>
+                                <th class="text-left py-3 px-4 text-slate-400">Active Orders</th>
+                                <th class="text-left py-3 px-4 text-slate-400">Status</th>
+                                <th class="text-left py-3 px-4 text-slate-400">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ridersTable">
+                            <tr><td colspan="7" class="text-center py-4 text-slate-500">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ORDERS TAB -->
+        <section id="ordersTab" class="tab-content mb-6 hidden">
+            <div class="bg-slate-800 border border-slate-700 rounded-lg p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold">Orders</h2>
+                    <div class="flex gap-2">
+                        <select id="orderStatusFilter" onchange="loadOrders()" class="bg-slate-700 text-white py-2 px-3 rounded border border-slate-600">
+                            <option value="">All Status</option>
+                            <option value="waiting_rider">Waiting Rider</option>
+                            <option value="confirmed">Confirmed</option>
+                            <option value="in_delivery">In Delivery</option>
+                            <option value="delivered">Delivered</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="ordersTableContainer" class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="border-b border-slate-700">
+                                <th class="text-left py-3 px-4 text-slate-400">Order ID</th>
+                                <th class="text-left py-3 px-4 text-slate-400">Customer</th>
+                                <th class="text-left py-3 px-4 text-slate-400">Restaurant</th>
+                                <th class="text-left py-3 px-4 text-slate-400">Amount</th>
+                                <th class="text-left py-3 px-4 text-slate-400">Status</th>
+                                <th class="text-left py-3 px-4 text-slate-400">Created</th>
+                                <th class="text-left py-3 px-4 text-slate-400">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTable">
+                            <tr><td colspan="7" class="text-center py-4 text-slate-500">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ANALYTICS TAB -->
+        <section id="analyticsTab" class="tab-content mb-6 hidden">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-slate-800 border border-slate-700 rounded-lg p-6">
+                    <h3 class="text-lg font-bold mb-4">Orders by Status</h3>
+                    <canvas id="orderStatusChart"></canvas>
+                </div>
+                <div class="bg-slate-800 border border-slate-700 rounded-lg p-6">
+                    <h3 class="text-lg font-bold mb-4">Daily Revenue</h3>
+                    <canvas id="revenueChart"></canvas>
+                </div>
+                <div class="bg-slate-800 border border-slate-700 rounded-lg p-6">
+                    <h3 class="text-lg font-bold mb-4">Top Restaurants</h3>
+                    <div id="topRestaurantsList" class="space-y-2"></div>
+                </div>
+                <div class="bg-slate-800 border border-slate-700 rounded-lg p-6">
+                    <h3 class="text-lg font-bold mb-4">Top Riders</h3>
+                    <div id="topRidersList" class="space-y-2"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ADD RESTAURANT MODAL -->
+    <div id="addRestaurantModal" class="fixed inset-0 bg-black bg-opacity-70 hidden flex items-center justify-center z-50">
+        <div class="bg-slate-800 border border-slate-700 rounded-lg p-6 w-96 shadow-2xl">
+            <h2 class="text-xl font-bold mb-4">Add Restaurant</h2>
+            <form onsubmit="saveRestaurant(event)">
+                <input type="text" id="restaurantName" placeholder="Restaurant Name" class="w-full bg-slate-700 text-white py-2 px-3 rounded mb-3 border border-slate-600" required>
+                <input type="text" id="restaurantCuisine" placeholder="Cuisine Type" class="w-full bg-slate-700 text-white py-2 px-3 rounded mb-3 border border-slate-600" required>
+                <input type="number" id="restaurantLat" placeholder="Latitude" step="0.0001" class="w-full bg-slate-700 text-white py-2 px-3 rounded mb-3 border border-slate-600" required>
+                <input type="number" id="restaurantLng" placeholder="Longitude" step="0.0001" class="w-full bg-slate-700 text-white py-2 px-3 rounded mb-3 border border-slate-600" required>
+                <input type="number" id="restaurantDeliveryTime" placeholder="Delivery Time (min)" class="w-full bg-slate-700 text-white py-2 px-3 rounded mb-3 border border-slate-600" required>
+                <input type="number" id="restaurantRating" placeholder="Rating (0-5)" step="0.1" class="w-full bg-slate-700 text-white py-2 px-3 rounded mb-4 border border-slate-600" required>
+                <div class="flex gap-2">
+                    <button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded transition">Save</button>
+                    <button type="button" onclick="closeModal('addRestaurantModal')" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 rounded transition">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ADD RIDER MODAL -->
+    <div id="addRiderModal" class="fixed inset-0 bg-black bg-opacity-70 hidden flex items-center justify-center z-50">
+        <div class="bg-slate-800 border border-slate-700 rounded-lg p-6 w-96 shadow-2xl">
+            <h2 class="text-xl font-bold mb-4">Add Rider</h2>
+            <form onsubmit="saveRider(event)">
+                <input type="text" id="riderName" placeholder="Rider Name" class="w-full bg-slate-700 text-white py-2 px-3 rounded mb-3 border border-slate-600" required>
+                <input type="text" id="riderVehicle" placeholder="Vehicle Type" class="w-full bg-slate-700 text-white py-2 px-3 rounded mb-3 border border-slate-600" required>
+                <input type="number" id="riderLat" placeholder="Latitude" step="0.0001" class="w-full bg-slate-700 text-white py-2 px-3 rounded mb-3 border border-slate-600" required>
+                <input type="number" id="riderLng" placeholder="Longitude" step="0.0001" class="w-full bg-slate-700 text-white py-2 px-3 rounded mb-3 border border-slate-600" required>
+                <input type="number" id="riderRating" placeholder="Rating (0-5)" step="0.1" class="w-full bg-slate-700 text-white py-2 px-3 rounded mb-4 border border-slate-600" required>
+                <div class="flex gap-2">
+                    <button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded transition">Save</button>
+                    <button type="button" onclick="closeModal('addRiderModal')" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 rounded transition">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ORDER DETAILS MODAL -->
+    <div id="orderDetailsModal" class="fixed inset-0 bg-black bg-opacity-70 hidden flex items-center justify-center z-50">
+        <div class="bg-slate-800 border border-slate-700 rounded-lg p-6 w-96 shadow-2xl">
+            <h2 class="text-xl font-bold mb-4">Order Details</h2>
+            <div id="orderDetailsContent" class="text-sm space-y-2 mb-4 text-slate-300"></div>
+            <div class="flex gap-2">
+                <button onclick="closeModal('orderDetailsModal')" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 rounded transition">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT -->
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.38.4/+esm';
+
+        const SUPABASE_URL = "https://your-project.supabase.co";
+        const SUPABASE_KEY = "your-anon-key";
+
+        let supabaseClient;
+        let charts = {};
+
+        try {
+            supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
+        } catch (e) {
+            console.error("Supabase init error:", e);
+        }
+
+        // Tab switching
+        window.switchTab = function(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(tab + 'Tab')?.classList.remove('hidden');
+
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-emerald-600');
+                btn.classList.add('bg-slate-700');
+            });
+            document.querySelector(`[data-tab="${tab}"]`)?.classList.add('bg-emerald-600');
+            document.querySelector(`[data-tab="${tab}"]`)?.classList.remove('bg-slate-700');
+
+            if (tab === 'analytics') loadAnalytics();
+        };
+
+        // Modal functions
+        window.openAddRestaurantModal = () => document.getElementById('addRestaurantModal').classList.remove('hidden');
+        window.openAddRiderModal = () => document.getElementById('addRiderModal').classList.remove('hidden');
+        window.closeModal = (modalId) => document.getElementById(modalId).classList.add('hidden');
+
+        // Load restaurants
+        window.loadRestaurants = async function() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('restaurants')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                const tbody = document.getElementById('restaurantsTable');
+                tbody.innerHTML = (data || []).map(r => `
+                    <tr class="border-b border-slate-700 hover:bg-slate-700 transition">
+                        <td class="py-3 px-4">${r.name}</td>
+                        <td class="py-3 px-4">${r.cuisine_type || 'N/A'}</td>
+                        <td class="py-3 px-4">${r.latitude.toFixed(4)}, ${r.longitude.toFixed(4)}</td>
+                        <td class="py-3 px-4">⭐ ${r.rating}</td>
+                        <td class="py-3 px-4">${r.delivery_time} min</td>
+                        <td class="py-3 px-4">
+                            <button onclick="editRestaurant('${r.id}')" class="text-blue-400 hover:text-blue-300 mr-2">Edit</button>
+                            <button onclick="deleteRestaurant('${r.id}')" class="text-red-400 hover:text-red-300">Delete</button>
+                        </td>
+                    </tr>
+                `).join('');
+
+                document.getElementById('statRestaurants').textContent = data?.length || 0;
+                const avgRating = data?.length > 0 ? (data.reduce((sum, r) => sum + (r.rating || 0), 0) / data.length).toFixed(1) : 0;
+                document.getElementById('statAvgRestaurantRating').textContent = avgRating;
+            } catch (error) {
+                console.error('Error loading restaurants:', error);
+            }
+        };
+
+        // Load riders
+        window.loadRiders = async function() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('riders')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                const tbody = document.getElementById('ridersTable');
+                tbody.innerHTML = (data || []).map(r => `
+                    <tr class="border-b border-slate-700 hover:bg-slate-700 transition">
+                        <td class="py-3 px-4">${r.name}</td>
+                        <td class="py-3 px-4">${r.vehicle_type || 'N/A'}</td>
+                        <td class="py-3 px-4">${r.latitude.toFixed(4)}, ${r.longitude.toFixed(4)}</td>
+                        <td class="py-3 px-4">⭐ ${r.rating}</td>
+                        <td class="py-3 px-4">${r.current_orders || 0}</td>
+                        <td class="py-3 px-4">
+                            <span class="px-2 py-1 rounded text-xs ${r.is_active ? 'bg-emerald-900 text-emerald-300' : 'bg-red-900 text-red-300'}">
+                                ${r.is_active ? 'Active' : 'Offline'}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4">
+                            <button onclick="toggleRiderStatus('${r.id}', ${r.is_active})" class="text-blue-400 hover:text-blue-300 mr-2">${r.is_active ? 'Deactivate' : 'Activate'}</button>
+                            <button onclick="deleteRider('${r.id}')" class="text-red-400 hover:text-red-300">Delete</button>
+                        </td>
+                    </tr>
+                `).join('');
+
+                const activeRiders = (data || []).filter(r => r.is_active).length;
+                document.getElementById('statActiveRiders').textContent = activeRiders;
+                const avgRating = data?.length > 0 ? (data.reduce((sum, r) => sum + (r.rating || 0), 0) / data.length).toFixed(1) : 0;
+                document.getElementById('statAvgRiderRating').textContent = avgRating;
+            } catch (error) {
+                console.error('Error loading riders:', error);
+            }
+        };
+
+        // Load orders
+        window.loadOrders = async function() {
+            try {
+                let query = supabaseClient
+                    .from('orders')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                const statusFilter = document.getElementById('orderStatusFilter')?.value;
+                if (statusFilter) query = query.eq('status', statusFilter);
+
+                const { data, error } = await query;
+
+                if (error) throw error;
+
+                const tbody = document.getElementById('ordersTable');
+                tbody.innerHTML = (data || []).map(o => `
+                    <tr class="border-b border-slate-700 hover:bg-slate-700 transition">
+                        <td class="py-3 px-4 text-blue-400">${o.id.slice(0, 8)}</td>
+                        <td class="py-3 px-4">${o.customer_name}</td>
+                        <td class="py-3 px-4 text-slate-400 text-xs">${o.restaurant_id?.slice(0, 8) || 'N/A'}</td>
+                        <td class="py-3 px-4 font-bold">₹${o.total_amount || 0}</td>
+                        <td class="py-3 px-4">
+                            <span class="px-2 py-1 rounded text-xs font-bold ${
+                                o.status === 'delivered' ? 'bg-emerald-900 text-emerald-300' :
+                                o.status === 'in_delivery' ? 'bg-blue-900 text-blue-300' :
+                                o.status === 'confirmed' ? 'bg-purple-900 text-purple-300' :
+                                'bg-amber-900 text-amber-300'
+                            }">
+                                ${o.status.replace('_', ' ')}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4 text-xs text-slate-500">${new Date(o.created_at).toLocaleDateString()}</td>
+                        <td class="py-3 px-4">
+                            <button onclick="showOrderDetails('${o.id}')" class="text-blue-400 hover:text-blue-300">View</button>
+                        </td>
+                    </tr>
+                `).join('');
+
+                document.getElementById('statTotalOrders').textContent = data?.length || 0;
+                const todayOrders = (data || []).filter(o => new Date(o.created_at).toDateString() === new Date().toDateString()).length;
+                document.getElementById('statTodayOrders').textContent = todayOrders;
+                const totalRevenue = (data || []).reduce((sum, o) => sum + (o.total_amount || 0), 0);
+                document.getElementById('statRevenue').textContent = '₹' + totalRevenue;
+                document.getElementById('statCommissionSaved').textContent = (totalRevenue * 0.15).toFixed(0);
+            } catch (error) {
+                console.error('Error loading orders:', error);
+            }
+        };
+
+        // Save restaurant
+        window.saveRestaurant = async function(event) {
+            event.preventDefault();
+            try {
+                const { error } = await supabaseClient.from('restaurants').insert([{
+                    name: document.getElementById('restaurantName').value,
+                    cuisine_type: document.getElementById('restaurantCuisine').value,
+                    latitude: parseFloat(document.getElementById('restaurantLat').value),
+                    longitude: parseFloat(document.getElementById('restaurantLng').value),
+                    delivery_time: parseInt(document.getElementById('restaurantDeliveryTime').value),
+                    rating: parseFloat(document.getElementById('restaurantRating').value)
+                }]);
+
+                if (error) throw error;
+                window.closeModal('addRestaurantModal');
+                window.loadRestaurants();
+                alert('Restaurant added successfully!');
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        };
+
+        // Save rider
+        window.saveRider = async function(event) {
+            event.preventDefault();
+            try {
+                const { error } = await supabaseClient.from('riders').insert([{
+                    name: document.getElementById('riderName').value,
+                    vehicle_type: document.getElementById('riderVehicle').value,
+                    latitude: parseFloat(document.getElementById('riderLat').value),
+                    longitude: parseFloat(document.getElementById('riderLng').value),
+                    rating: parseFloat(document.getElementById('riderRating').value),
+                    is_active: true
+                }]);
+
+                if (error) throw error;
+                window.closeModal('addRiderModal');
+                window.loadRiders();
+                alert('Rider added successfully!');
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        };
+
+        // Delete restaurant
+        window.deleteRestaurant = async function(id) {
+            if (!confirm('Delete this restaurant?')) return;
+            try {
+                const { error } = await supabaseClient.from('restaurants').delete().eq('id', id);
+                if (error) throw error;
+                window.loadRestaurants();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        };
+
+        // Delete rider
+        window.deleteRider = async function(id) {
+            if (!confirm('Delete this rider?')) return;
+            try {
+                const { error } = await supabaseClient.from('riders').delete().eq('id', id);
+                if (error) throw error;
+                window.loadRiders();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        };
+
+        // Toggle rider status
+        window.toggleRiderStatus = async function(id, currentStatus) {
+            try {
+                const { error } = await supabaseClient.from('riders').update({ is_active: !currentStatus }).eq('id', id);
+                if (error) throw error;
+                window.loadRiders();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        };
+
+        // Show order details
+        window.showOrderDetails = async function(id) {
+            try {
+                const { data, error } = await supabaseClient.from('orders').select('*').eq('id', id).single();
+                if (error) throw error;
+
+                const content = document.getElementById('orderDetailsContent');
+                content.innerHTML = `
+                    <p><strong>Order ID:</strong> ${data.id}</p>
+                    <p><strong>Customer:</strong> ${data.customer_name}</p>
+                    <p><strong>Amount:</strong> ₹${data.total_amount}</p>
+                    <p><strong>Payout:</strong> ₹${data.payout}</p>
+                    <p><strong>Status:</strong> ${data.status}</p>
+                    <p><strong>Delivery Address:</strong> ${data.delivery_address || 'N/A'}</p>
+                    <p><strong>Created:</strong> ${new Date(data.created_at).toLocaleString()}</p>
+                    <p><strong>Items:</strong> ${(data.items || []).join(', ')}</p>
+                `;
+                document.getElementById('orderDetailsModal').classList.remove('hidden');
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        };
+
+        // Load analytics
+        window.loadAnalytics = async function() {
+            try {
+                const { data: orders } = await supabaseClient.from('orders').select('*');
+                const { data: restaurants } = await supabaseClient.from('restaurants').select('*').order('rating', { ascending: false }).limit(5);
+                const { data: riders } = await supabaseClient.from('riders').select('*').order('rating', { ascending: false }).limit(5);
+
+                // Orders by status chart
+                const statusCounts = {
+                    waiting_rider: 0,
+                    confirmed: 0,
+                    in_delivery: 0,
+                    delivered: 0
+                };
+                (orders || []).forEach(o => {
+                    if (statusCounts.hasOwnProperty(o.status)) statusCounts[o.status]++;
+                });
+
+                if (charts.orderStatus) charts.orderStatus.destroy();
+                const statusCtx = document.getElementById('orderStatusChart').getContext('2d');
+                charts.orderStatus = new Chart(statusCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(statusCounts),
+                        datasets: [{
+                            data: Object.values(statusCounts),
+                            backgroundColor: ['#fbbf24', '#60a5fa', '#34d399', '#10b981']
+                        }]
+                    },
+                    options: { responsive: true, plugins: { legend: { labels: { color: '#e2e8f0' } } } }
+                });
+
+                // Top restaurants
+                const restaurantsList = document.getElementById('topRestaurantsList');
+                restaurantsList.innerHTML = (restaurants || []).map(r => `
+                    <div class="flex justify-between items-center p-2 bg-slate-700 rounded">
+                        <span>${r.name}</span>
+                        <span class="text-emerald-400 font-bold">⭐ ${r.rating}</span>
+                    </div>
+                `).join('');
+
+                // Top riders
+                const ridersList = document.getElementById('topRidersList');
+                ridersList.innerHTML = (riders || []).map(r => `
+                    <div class="flex justify-between items-center p-2 bg-slate-700 rounded">
+                        <span>${r.name}</span>
+                        <span class="text-orange-400 font-bold">⭐ ${r.rating}</span>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading analytics:', error);
+            }
+        };
+
+        window.logout = () => {
+            alert('Logged out');
+            window.location.href = 'index.html';
+        };
+
+        // Initial load
+        window.addEventListener('DOMContentLoaded', () => {
+            window.loadRestaurants();
+            window.loadRiders();
+            window.loadOrders();
+        });
+    </script>
+</body>
+</html>
