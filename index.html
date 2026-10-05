@@ -1,4 +1,3 @@
-@@ -1,154 +1,154 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -75,6 +74,14 @@
                 </div>
             </div>
 
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="text-md font-bold">Nearby Restaurants</h2>
+                    <span id="locationStatus" class="text-[10px] font-semibold text-slate-500">Detecting location...</span>
+                </div>
+                <div id="nearbyRestaurantsList" class="space-y-2"></div>
+            </div>
+
             <div id="customerBiddingPanel" class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 hidden">
                 <div class="flex justify-between items-center mb-2">
                     <h2 class="text-md font-bold">2. Live Local Rider Bids</h2>
@@ -89,7 +96,7 @@
                     <div class="flex justify-between"><span>Food Total:</span><span id="summaryFood" class="font-bold">₹0</span></div>
                     <div class="flex justify-between"><span>Delivery Rider Bid:</span><span id="summaryDelivery" class="font-bold text-emerald-600">₹0</span></div>
                     <div class="border-t pt-2 flex justify-between font-black text-sm"><span>Total Net Payout:</span><span id="summaryTotal">₹0</span></div>
-                    <a id="directUpiPayBtn" href="#" onclick="finalizeOrderSimulation(event)" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded block text-center shadow-md transition tracking-wide">Pay via Any UPI App (GPay/PhonePe)</a>
+                    <a id="directUpiPayBtn" href="#" onclick="finalizeOrderSimulation(event)" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded block text-center shadow-sm transition">Pay via UPI</a>
                 </div>
             </div>
         </section>
@@ -136,11 +143,9 @@
     <!-- CORE SYSTEM BACKEND INTEGRATION ENGINE -->
     <script>
         // --- PROD CONFIGURATION LAYER ---
-        // Switch out these configurations once your live production Supabase instance is ready
         const SUPABASE_URL = "https://supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.your-key-here";
 
-        // Safe Fallback Client Scaffold Integration System 
         const supabase = {
             createClient: (url, key) => ({
                 from: (table) => ({
@@ -154,3 +159,249 @@
 
         // --- APP STATE CONFIGURATION ---
         let currentOrder = { food_cost: 0, restaurant_name: "", restaurant_vpa: "", selected_fee: 0 };
+        let currentLocation = { lat: 12.9716, lng: 77.5946, label: "Bengaluru" };
+
+        const nearbyRestaurantsData = [
+            { name: "Kishan Bakes", lat: 12.9725, lng: 77.5928, eta: "6 min", type: "Biryani" },
+            { name: "Green Bowl Cafe", lat: 12.9698, lng: 77.5987, eta: "11 min", type: "Healthy" },
+            { name: "Super Wok", lat: 12.9752, lng: 77.5922, eta: "9 min", type: "Chinese" },
+            { name: "Sultan Spices", lat: 12.9681, lng: 77.5889, eta: "14 min", type: "North Indian" },
+            { name: "Curry Corner", lat: 12.9764, lng: 77.6063, eta: "17 min", type: "South Indian" }
+        ];
+
+        const nearbyRidersData = [
+            { name: "Ravi K.", lat: 12.9734, lng: 77.5961, rating: 4.8, eta: "4 min", bid: 35 },
+            { name: "Shiva M.", lat: 12.9688, lng: 77.5979, rating: 4.6, eta: "6 min", bid: 40 },
+            { name: "Anoop P.", lat: 12.9709, lng: 77.5909, rating: 4.9, eta: "8 min", bid: 45 },
+            { name: "Mala S.", lat: 12.9767, lng: 77.6005, rating: 4.7, eta: "10 min", bid: 50 }
+        ];
+
+        const nearbyJobsData = [
+            { customer: "Ananya", lat: 12.9719, lng: 77.5924, item: "Biryani Combo", distance: "1.1 km", payout: "₹90" },
+            { customer: "Karan", lat: 12.9683, lng: 77.5982, item: "Pizza Meal", distance: "1.7 km", payout: "₹120" },
+            { customer: "Neha", lat: 12.9745, lng: 77.6068, item: "Wrap & Shake", distance: "2.4 km", payout: "₹110" }
+        ];
+
+        const nearbyOrdersData = [
+            { customer: "Ishita", lat: 12.9721, lng: 77.5938, item: "Chicken Thali", amount: "₹230", distance: "0.9 km" },
+            { customer: "Rohit", lat: 12.9692, lng: 77.6005, item: "Paneer Bowl", amount: "₹180", distance: "1.4 km" },
+            { customer: "Mehak", lat: 12.9771, lng: 77.5994, item: "Momo Combo", amount: "₹210", distance: "2.1 km" }
+        ];
+
+        function toRadians(value) {
+            return (value * Math.PI) / 180;
+        }
+
+        function calculateDistanceKm(pointA, pointB) {
+            const earthRadiusKm = 6371;
+            const dLat = toRadians(pointB.lat - pointA.lat);
+            const dLng = toRadians(pointB.lng - pointA.lng);
+            const lat1 = toRadians(pointA.lat);
+            const lat2 = toRadians(pointB.lat);
+            const a =
+                Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+            return 2 * earthRadiusKm * Math.asin(Math.sqrt(a));
+        }
+
+        function formatDistance(km) {
+            if (km < 1) return `${Math.round(km * 1000)} m`;
+            return `${km.toFixed(1)} km`;
+        }
+
+        function detectUserLocation() {
+            if (!navigator.geolocation) {
+                return Promise.resolve(currentLocation);
+            }
+
+            return new Promise((resolve) => {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        currentLocation = {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude,
+                            label: "Your location"
+                        };
+                        resolve(currentLocation);
+                    },
+                    () => {
+                        resolve(currentLocation);
+                    },
+                    { enableHighAccuracy: true, timeout: 5000, maximumAge: 300000 }
+                );
+            });
+        }
+
+        function renderNearbyRestaurants() {
+            const list = document.getElementById("nearbyRestaurantsList");
+            if (!list) return;
+
+            const restaurants = nearbyRestaurantsData
+                .map((restaurant) => ({
+                    ...restaurant,
+                    distance: calculateDistanceKm(currentLocation, restaurant)
+                }))
+                .sort((a, b) => a.distance - b.distance)
+                .slice(0, 4);
+
+            if (!restaurants.length) {
+                list.innerHTML = '<p class="text-xs text-slate-400">No restaurants nearby yet.</p>';
+                return;
+            }
+
+            list.innerHTML = restaurants.map((restaurant) => `
+                <div class="p-2.5 border border-slate-200 rounded-lg bg-slate-50">
+                    <div class="flex justify-between items-center gap-2">
+                        <div>
+                            <p class="font-bold text-sm text-slate-800">${restaurant.name}</p>
+                            <p class="text-[10px] text-slate-500">${restaurant.type} • ${restaurant.eta}</p>
+                        </div>
+                        <span class="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-1 rounded-full">${formatDistance(restaurant.distance)}</span>
+                    </div>
+                </div>
+            `).join("");
+        }
+
+        function renderNearbyRiders() {
+            const list = document.getElementById("liveBidsList");
+            if (!list) return;
+
+            const riders = nearbyRidersData
+                .map((rider) => ({
+                    ...rider,
+                    distance: calculateDistanceKm(currentLocation, rider)
+                }))
+                .sort((a, b) => a.distance - b.distance)
+                .slice(0, 4);
+
+            if (!riders.length) {
+                list.innerHTML = '<p class="text-xs text-slate-400">No riders nearby.</p>';
+                return;
+            }
+
+            list.innerHTML = riders.map((rider) => `
+                <div class="p-2.5 border border-amber-100 rounded-lg bg-amber-50/40 flex justify-between items-center gap-2">
+                    <div>
+                        <p class="font-bold text-sm text-slate-800">${rider.name}</p>
+                        <p class="text-[10px] text-slate-500">⭐ ${rider.rating} • ${rider.eta}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-black text-emerald-600 text-sm">₹${rider.bid}</p>
+                        <p class="text-[10px] text-slate-500">${formatDistance(rider.distance)}</p>
+                    </div>
+                </div>
+            `).join("");
+        }
+
+        function renderRiderJobs() {
+            const list = document.getElementById("riderJobsList");
+            if (!list) return;
+
+            const jobs = nearbyJobsData
+                .map((job) => ({
+                    ...job,
+                    distanceKm: calculateDistanceKm(currentLocation, { lat: job.lat, lng: job.lng })
+                }))
+                .sort((a, b) => a.distanceKm - b.distanceKm);
+
+            if (!jobs.length) {
+                list.innerHTML = '<div class="text-xs text-slate-400 text-center py-4">No requests found...</div>';
+                return;
+            }
+
+            list.innerHTML = jobs.map((job) => `
+                <div class="p-3 border border-slate-200 rounded-lg bg-slate-50">
+                    <div class="flex justify-between items-center gap-2">
+                        <div>
+                            <p class="font-bold text-sm text-slate-800">${job.customer}</p>
+                            <p class="text-[10px] text-slate-500">${job.item}</p>
+                        </div>
+                        <span class="text-[10px] font-bold bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full">${job.payout}</span>
+                    </div>
+                    <div class="mt-2 flex justify-between text-[10px] text-slate-500">
+                        <span>Pickup: ${formatDistance(job.distanceKm)}</span>
+                        <span>Bid now</span>
+                    </div>
+                </div>
+            `).join("");
+        }
+
+        function renderRestaurantOrders() {
+            const list = document.getElementById("restaurantOrdersList");
+            if (!list) return;
+
+            const orders = nearbyOrdersData
+                .map((order) => ({
+                    ...order,
+                    distanceKm: calculateDistanceKm(currentLocation, { lat: order.lat, lng: order.lng })
+                }))
+                .sort((a, b) => a.distanceKm - b.distanceKm);
+
+            if (!orders.length) {
+                list.innerHTML = '<div class="text-xs text-slate-400 text-center py-4">Waiting for customer checkouts...</div>';
+                return;
+            }
+
+            list.innerHTML = orders.map((order) => `
+                <div class="p-3 border border-slate-200 rounded-lg bg-slate-50">
+                    <div class="flex justify-between items-center gap-2">
+                        <div>
+                            <p class="font-bold text-sm text-slate-800">${order.customer}</p>
+                            <p class="text-[10px] text-slate-500">${order.item}</p>
+                        </div>
+                        <span class="text-[10px] font-bold bg-blue-100 text-blue-700 px-2 py-1 rounded-full">${order.amount}</span>
+                    </div>
+                    <div class="mt-2 flex justify-between text-[10px] text-slate-500">
+                        <span>${formatDistance(order.distanceKm)}</span>
+                        <span>New order</span>
+                    </div>
+                </div>
+            `).join("");
+        }
+
+        function switchRole(role) {
+            const roleSelector = document.getElementById("roleSelector");
+            if (roleSelector) roleSelector.value = role;
+
+            const panels = document.querySelectorAll(".view-panel");
+            panels.forEach((panel) => {
+                panel.classList.add("hidden");
+            });
+
+            if (role === "customer") {
+                document.getElementById("customerView")?.classList.remove("hidden");
+                renderNearbyRestaurants();
+                renderNearbyRiders();
+                document.getElementById("customerBiddingPanel")?.classList.remove("hidden");
+            }
+
+            if (role === "rider") {
+                document.getElementById("riderView")?.classList.remove("hidden");
+                renderRiderJobs();
+            }
+
+            if (role === "restaurant") {
+                document.getElementById("restaurantView")?.classList.remove("hidden");
+                renderRestaurantOrders();
+            }
+        }
+
+        async function initializeLocationAwareViews() {
+            const locationStatus = document.getElementById("locationStatus");
+            await detectUserLocation();
+
+            if (locationStatus) {
+                locationStatus.textContent = `Near ${currentLocation.label}`;
+            }
+
+            renderNearbyRestaurants();
+            renderNearbyRiders();
+            renderRiderJobs();
+            renderRestaurantOrders();
+            switchRole(document.getElementById("roleSelector")?.value || "customer");
+        }
+
+        window.addEventListener("DOMContentLoaded", initializeLocationAwareViews);
+    </script>
+</body>
+</html>
