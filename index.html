@@ -50,7 +50,10 @@
     <!-- NAVIGATION HEADER -->
     <header class="bg-emerald-600 text-white shadow-lg p-4 sticky top-0 z-50 safe-area">
         <div class="flex justify-between items-center gap-4">
-            <h1 class="text-xl font-bold tracking-tight flex-1">🚀 DirectBite</h1>
+            <div class="flex-1">
+                <h1 class="text-xl font-bold tracking-tight">🚀 DirectBite</h1>
+                <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-100">0% COMMISSION ON USE</p>
+            </div>
             <select id="roleSelector" onchange="switchRole(this.value)" class="bg-emerald-700 text-white font-medium py-2 px-3 rounded-lg border border-emerald-500 text-sm outline-none mobile-button">
                 <option value="customer">🍔 Customer</option>
                 <option value="rider">🏍️ Rider</option>
@@ -244,9 +247,9 @@
                 { id: 104, name: "Neha Sharma", vehicle_type: "Scooter", latitude: 12.965, longitude: 77.588, rating: 4.6, current_orders: 1, is_active: true }
             ],
             orders: [
-                { id: 1001, customer_name: "John Doe", pickup_lat: 12.975, pickup_lng: 77.597, delivery_lat: 12.962, delivery_lng: 77.590, delivery_address: "Marathahalli", total_amount: 250, payout: 35, items: ["Biryani", "Naan"], status: "waiting_rider" },
-                { id: 1002, customer_name: "Sarah Khan", pickup_lat: 12.968, pickup_lng: 77.591, delivery_lat: 12.955, delivery_lng: 77.595, delivery_address: "Indiranagar", total_amount: 180, payout: 28, items: ["Dosa", "Sambar"], status: "waiting_rider" },
-                { id: 1003, customer_name: "Mike Johnson", pickup_lat: 12.980, pickup_lng: 77.600, delivery_lat: 12.970, delivery_lng: 77.605, delivery_address: "Koramangala", total_amount: 320, payout: 45, items: ["Mutton Biryani", "Raita"], status: "confirmed" }
+                { id: 1001, customer_name: "John Doe", pickup_lat: 12.975, pickup_lng: 77.597, delivery_lat: 12.962, delivery_lng: 77.590, delivery_address: "Marathahalli", total_amount: 250, payout: 65, status: "waiting_rider", items: ["Biryani", "Coke"] },
+                { id: 1002, customer_name: "Sarah Khan", pickup_lat: 12.968, pickup_lng: 77.591, delivery_lat: 12.955, delivery_lng: 77.595, delivery_address: "Indiranagar", total_amount: 180, payout: 52, status: "waiting_rider", items: ["Dosa", "Filter Coffee"] },
+                { id: 1003, customer_name: "Mike Johnson", pickup_lat: 12.980, pickup_lng: 77.600, delivery_lat: 12.970, delivery_lng: 77.605, delivery_address: "Koramangala", total_amount: 320, payout: 70, status: "confirmed", items: ["Biryani Thali", "Juice"] }
             ]
         };
 
@@ -389,7 +392,7 @@
                 }
 
                 list.innerHTML = riders.map((r) => `
-                    <div class="p-3 border border-amber-100 rounded-lg bg-amber-50/40 flex justify-between items-center gap-2 cursor-pointer hover:bg-amber-50" onclick="selectRider(${r.id}, '${r.name}', ${Math.floor(Math.random() * 40 + 25)})">
+                    <div class="p-3 border border-amber-100 rounded-lg bg-amber-50/40 flex justify-between items-center gap-2 cursor-pointer hover:bg-amber-50" onclick="selectRider(${r.id}, '${r.name}', ${r.id % 5 === 0 ? 25 : 30})">
                         <div class="flex-1">
                             <p class="font-bold text-sm text-slate-800">${r.name}</p>
                             <p class="text-[10px] text-slate-500">⭐ ${r.rating} • ${r.vehicle_type}</p>
