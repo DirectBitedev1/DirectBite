@@ -28,6 +28,20 @@
             min-height: 44px;
             padding: 12px 16px;
         }
+        .premium-header {
+            background: linear-gradient(135deg, rgba(5,92,62,1) 0%, rgba(16,185,129,1) 100%);
+            box-shadow: 0 12px 30px rgba(5, 150, 105, 0.22);
+            backdrop-filter: blur(12px);
+        }
+        .premium-brand {
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        .premium-tag {
+            background: rgba(255,255,255,0.14);
+            border: 1px solid rgba(255,255,255,0.24);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.15);
+        }
         @media (max-width: 640px) {
             .text-md { font-size: 0.95rem !important; }
             main {
@@ -48,16 +62,18 @@
 <body class="bg-slate-50 text-slate-900 font-sans pb-24">
 
     <!-- NAVIGATION HEADER -->
-    <header class="bg-emerald-600 text-white shadow-lg p-4 sticky top-0 z-50 safe-area">
+    <header class="premium-header text-white p-4 sticky top-0 z-50 safe-area">
         <div class="flex justify-between items-center gap-4">
-            <div class="flex-1">
-                <h1 class="text-xl font-bold tracking-tight">🚀 DirectBite</h1>
-                <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-100">0% COMMISSION ON USE</p>
+            <div class="flex-1 min-w-0">
+                <h1 class="text-xl md:text-2xl font-black tracking-tight leading-none">🚀 DirectBite</h1>
+                <div class="mt-1 inline-flex items-center premium-tag text-[10px] font-bold uppercase tracking-[0.22em] px-2.5 py-1 rounded-full text-emerald-50">
+                    0% COMMISSION ON USE
+                </div>
             </div>
-            <select id="roleSelector" onchange="switchRole(this.value)" class="bg-emerald-700 text-white font-medium py-2 px-3 rounded-lg border border-emerald-500 text-sm outline-none mobile-button">
-                <option value="customer">🍔 Customer</option>
-                <option value="rider">🏍️ Rider</option>
-                <option value="restaurant">🍳 Restaurant</option>
+            <select id="roleSelector" onchange="switchRole(this.value)" class="bg-white/10 text-white font-medium py-2 px-3 rounded-xl border border-white/20 text-sm outline-none mobile-button backdrop-blur-sm shadow-inner">
+                <option value="customer" class="text-slate-900">🍔 Customer</option>
+                <option value="rider" class="text-slate-900">🏍️ Rider</option>
+                <option value="restaurant" class="text-slate-900">🍳 Restaurant</option>
             </select>
         </div>
     </header>
